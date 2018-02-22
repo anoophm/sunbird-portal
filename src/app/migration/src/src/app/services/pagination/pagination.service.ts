@@ -3,29 +3,29 @@ import * as _ from 'lodash';
 export class PagerService {
    getPager(totalItems: number, currentPage: number = 1, pageSize: number = 10) {
        // calculate total pages
-       let totalPages = Math.ceil(totalItems / pageSize);
+       const totalPages = Math.ceil(totalItems / pageSize);
 
        let startPage: number, endPage: number;
        if (totalPages <= 5) {
-        startPage = 1
-        endPage = totalPages
+        startPage = 1;
+        endPage = totalPages;
       } else if (currentPage <= 1) {
-        startPage = 1
-        endPage = 5
+        startPage = 1;
+        endPage = 5;
       } else if (currentPage + 4 >= totalPages) {
-        startPage = totalPages - 4
-        endPage = totalPages
+        startPage = totalPages - 4;
+        endPage = totalPages;
       } else {
-        startPage = currentPage
-        endPage = currentPage + 4
+        startPage = currentPage;
+        endPage = currentPage + 4;
       }
 
        // calculate start and end item indexes
-       let startIndex = (currentPage - 1) * pageSize;
-       let endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1);
+       const startIndex = (currentPage - 1) * pageSize;
+       const endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1);
 
        // create an array of pages to ng-repeat in the pager control
-       let pages = _.range(startPage, endPage + 1);
+       const pages = _.range(startPage, endPage + 1);
 
        // return object with all pager properties required by the view
        return {

@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 const urlConFig = (<any>urlConfig);
 
 /**
- * Interface to hold api request pageNumber, limit, announcementId and data 
+ * Interface to hold api request pageNumber, limit, announcementId and data
  */
 interface RequestParam {
   pageNumber?: number;
@@ -19,8 +19,8 @@ interface RequestParam {
 
 /**
  * Service for all announcement API calls
- * 
- * It responsible to make http call 
+ *
+ * It responsible to make http call
  */
 @Injectable()
 
@@ -31,7 +31,7 @@ export class AnnouncementService extends DataService {
 
   /**
    * Constructor - default method of AnnouncementService class
-   * 
+   *
    * @param {HttpClient} http To make API calls
    */
   constructor(public http: HttpClient) {
@@ -52,8 +52,8 @@ export class AnnouncementService extends DataService {
           'offset': (requestParam.pageNumber - 1) * requestParam.limit
         }
       }
-    }
-    return this.post(option)
+    };
+    return this.post(option);
   }
 
   /**
@@ -70,8 +70,8 @@ export class AnnouncementService extends DataService {
           'offset': (requestParam.pageNumber - 1) * requestParam.limit
         }
       }
-    }
-    return this.post(option)
+    };
+    return this.post(option);
   }
 
   /**
@@ -88,8 +88,8 @@ export class AnnouncementService extends DataService {
           'channel': 'web'
         }
       }
-    }
-    return this.post(option)
+    };
+    return this.post(option);
   }
 
   /**
@@ -106,8 +106,8 @@ export class AnnouncementService extends DataService {
           'channel': 'web'
         }
       }
-    }
-    return this.post(option)
+    };
+    return this.post(option);
   }
 
   /**
@@ -123,7 +123,7 @@ export class AnnouncementService extends DataService {
           'announcementId': requestParam.announcementId
         }
       }
-    }
-    return this.delete(option)
+    };
+    return this.delete(option);
   }
 }

@@ -4,7 +4,7 @@ import { AnnouncementRoutingModule } from './announcement-routing.module';
 import { SuiModule } from 'ng2-semantic-ui';
 import { OutboxComponent } from './components/outbox/outbox.component';
 
-import { AnnouncementService, PagerService, ResourceService, AppCommonModule} from './index'
+import { AnnouncementService, PagerService, ResourceService, AppCommonModule} from './index';
 
 @NgModule({
   imports: [
