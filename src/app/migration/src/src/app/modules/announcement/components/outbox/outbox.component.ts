@@ -1,9 +1,7 @@
-import { PagerService } from './../../../../services/pagination/pagination.service';
-import { AnnouncementService } from './../../../../services/announcement/announcement.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { ResourceService } from './../../../../services/resource/resource.service';
+import { AnnouncementService, PagerService, ResourceService} from '../../index'
 
 /**
  * The announcement outbox component
@@ -105,10 +103,10 @@ export class OutboxComponent {
 	 * @example renderOutbox(10, 1)
 	 */
   renderOutbox(limit: number, pageNumber: number) {
-    this.showLoader = true
-    this.showDataDiv = false
-    this.pageNumber = pageNumber
-    this.pageLimit = limit
+    this.showLoader = true;
+    this.showDataDiv = false;
+    this.pageNumber = pageNumber;
+    this.pageLimit = limit;
 
     const option = {
       pageNumber: this.pageNumber,
@@ -117,17 +115,17 @@ export class OutboxComponent {
 
     this.AnnouncementService.getOutboxData(option).subscribe(
       apiResponse => {
-        this.outboxData = apiResponse.result.announcements
-        this.result = apiResponse.result
-        this.showLoader = false
-        this.showDataDiv = true
-        this.totalCount = apiResponse.result.count
-        this.pager = this.PagerService.getPager(apiResponse.result.count, this.pageNumber, this.pageLimit)
+        this.outboxData = apiResponse.result.announcements;
+        this.result = apiResponse.result;
+        this.showLoader = false;
+        this.showDataDiv = true;
+        this.totalCount = apiResponse.result.count;
+        this.pager = this.PagerService.getPager(apiResponse.result.count, this.pageNumber, this.pageLimit);
       },
       err => {
         // console.log('err', err.error.params.errmsg)
-        this.showError = true
-        this.showLoader = false
+        this.showError = true;
+        this.showLoader = false;
       }
     );
   }
@@ -143,9 +141,9 @@ export class OutboxComponent {
 	 */
   setPage(page: number) {
     if (page < 1 || page > this.pager.totalPages) {
-      return
+      return;
     }
-    this.pageNumber = page
+    this.pageNumber = page;
     this.Route.navigate(['migration/announcement/outbox', this.pageNumber])
   }
 
@@ -156,15 +154,15 @@ export class OutboxComponent {
 	 * 
 	 */
   deleteAnnouncement() {
-    const option = {announcementId: this.announcementId}
+    const option = { announcementId: this.announcementId };
     this.AnnouncementService.deleteAnnouncement(option).subscribe(
       apiResponse => {
-        console.log('deleted')
-        this.renderOutbox(this.pageLimit, this.pageNumber)
+        console.log('deleted');
+        this.renderOutbox(this.pageLimit, this.pageNumber);
       },
       err => {
-         //console.log('err', err.error.params.errmsg)
-        this.showError = true
+        //console.log('err', err.error.params.errmsg)
+        this.showError = true;
       }
     );
   }
