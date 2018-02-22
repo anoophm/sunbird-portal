@@ -75,7 +75,7 @@ export class OutboxComponent {
   /**
 	 * Constructor to create injected service(s) object
 	 * 
-	 * Default method of CourseConsumptionComponent class
+	 * Default method of AnnouncementService class
 	 * 
    * @param {AnnouncementService} AnnouncementService To make API calls
    * @param {Router} Route To navigate to other pages
