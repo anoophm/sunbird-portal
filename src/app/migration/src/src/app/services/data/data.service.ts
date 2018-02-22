@@ -56,8 +56,10 @@ export class DataService {
   }
 
   delete(requestParam: RequestParam) {
-    return this.http.delete(this.baseUrl + requestParam.url);
+    const option = { headers: this.getHeader(), body: requestParam.data }
+    return this.http.delete(this.baseUrl + requestParam.url, option);
   }
+  
   private getHeader() {
     return {
       'Content-Type': 'application/json',

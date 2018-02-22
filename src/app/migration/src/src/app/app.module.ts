@@ -21,6 +21,7 @@ import { MainMenuComponent } from './components/header/main-menu/main-menu.compo
 import { AuthGuard } from './auth-guards/auth-guard.service';
 import { LearnerService } from './services/learner/learner.service';
 import { CommonModule } from '@angular/common';
+import { AnnouncementModule } from './modules/announcement/announcement.module';
 @NgModule({
   declarations: [
     AppComponent,
@@ -37,7 +38,8 @@ import { CommonModule } from '@angular/common';
     HttpClientModule,
     SuiModule,
     ProfileModule,
-    AppCommonModule
+    AppCommonModule,
+    AnnouncementModule
   ],
   providers: [
     RouteResolveService,
