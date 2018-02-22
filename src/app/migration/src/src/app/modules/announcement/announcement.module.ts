@@ -1,7 +1,4 @@
-import { ResourceService } from './../../services/resource/resource.service';
-import { PagerService } from './../../services/pagination/pagination.service';
-import { AppCommonModule } from './../common/common.module';
-import { AnnouncementService } from './../../services/announcement/announcement.service';
+import { AnnouncementService, PagerService, ResourceService, AppCommonModule} from './index'
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnnouncementRoutingModule } from './announcement-routing.module';
