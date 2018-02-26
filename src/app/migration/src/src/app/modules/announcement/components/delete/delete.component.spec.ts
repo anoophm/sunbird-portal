@@ -10,9 +10,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 
-import { OutboxComponent } from '../index';
-import { AnnouncementService, ResourceService } from '../../index';
-import { AppCommonModule } from '../../index';
+import { AnnouncementService, ResourceService, AppCommonModule} from '../../index';
 import { DeleteComponent } from './delete.component';
 
 describe('DeleteComponent', () => {
