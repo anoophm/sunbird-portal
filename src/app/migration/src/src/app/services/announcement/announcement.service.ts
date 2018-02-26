@@ -42,7 +42,8 @@ export class AnnouncementService extends DataService {
   }
 
   /**
-  * Method to make api call to get inbox data
+  * Method to make api call to get inbox data.
+  * It calls the post method from data service class
   *
   * @param {RequestParam} requestParam Request object needed for inbox API call
   */
@@ -61,6 +62,7 @@ export class AnnouncementService extends DataService {
 
   /**
   * Method to make api call to get outbox data
+  * It calls the post method from data service class
   *
   * @param {RequestParam} requestParam Request object needed for outbox API call
   */
@@ -79,6 +81,7 @@ export class AnnouncementService extends DataService {
 
   /**
   * Method to make received api call
+  * It calls the post method from data service class
   *
   * @param {RequestParam} requestParam Request object needed for received API call
   */
@@ -97,6 +100,7 @@ export class AnnouncementService extends DataService {
 
   /**
   * Method to make read api call
+  * It calls the post method from data service class
   *
   * @param {RequestParam} requestParam Request object needed for read API call
   */
@@ -115,6 +119,7 @@ export class AnnouncementService extends DataService {
 
   /**
   * Method to make delete api call
+  * It calls the delete method from data service class
   *
   * @param {RequestParam} requestParam Request object needed for delete API call
   */
