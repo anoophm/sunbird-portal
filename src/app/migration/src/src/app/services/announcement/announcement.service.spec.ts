@@ -24,7 +24,7 @@ describe('AnnouncementService', () => {
 
   it('should make inbox api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'limit': 10, 'offset': 10 } } };
-    spyOn(service, 'getInboxData').and.callFake(() => Observable.of(testData.mockRes.inboxSuccess));
+    spyOn(service, 'post').and.callFake(() => Observable.of(testData.mockRes.inboxSuccess));
     service.getInboxData(params).subscribe(
       apiResponse => {
         expect(apiResponse.responseCode).toBe('OK');
@@ -35,7 +35,7 @@ describe('AnnouncementService', () => {
 
   it('should make inbox api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'limit': 10, 'offset': 10 } } };
-    spyOn(service, 'getInboxData').and.callFake(() => Observable.throw(testData.mockRes.inboxError));
+    spyOn(service, 'post').and.callFake(() => Observable.throw(testData.mockRes.inboxError));
     service.getInboxData(params).subscribe(
       apiResponse => { },
       err => {
@@ -48,7 +48,7 @@ describe('AnnouncementService', () => {
 
   it('should make outbox api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'limit': 25, 'offset': 10 } } };
-    spyOn(service, 'getOutboxData').and.callFake(() => Observable.of(testData.mockRes.outBoxSuccess));
+    spyOn(service, 'post').and.callFake(() => Observable.of(testData.mockRes.outBoxSuccess));
     service.getOutboxData(params).subscribe(
       apiResponse => {
         expect(apiResponse.responseCode).toBe('OK');
@@ -59,7 +59,8 @@ describe('AnnouncementService', () => {
 
   it('should make outbox api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'limit': 25, 'offset': 10 } } };
-    spyOn(service, 'getOutboxData').and.callFake(() => Observable.throw(testData.mockRes.outboxError));
+    spyOn(service, 'post').and.callFake(() => Observable.throw(testData.mockRes.outboxError));
+    service.getOutboxData(params);
     service.getOutboxData(params).subscribe(
       apiResponse => { },
       err => {
@@ -72,7 +73,7 @@ describe('AnnouncementService', () => {
 
   it('should make received api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
-    spyOn(service, 'receivedAnnouncement').and.callFake(() => Observable.of(testData.mockRes.receivedSuccess));
+    spyOn(service, 'post').and.callFake(() => Observable.of(testData.mockRes.receivedSuccess));
     service.receivedAnnouncement(params).subscribe(
       apiResponse => {
         expect(apiResponse.responseCode).toBe('OK');
@@ -83,7 +84,7 @@ describe('AnnouncementService', () => {
 
   it('should make received api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
-    spyOn(service, 'receivedAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.receivedError));
+    spyOn(service, 'post').and.callFake(() => Observable.throw(testData.mockRes.receivedError));
     service.receivedAnnouncement(params).subscribe(
       apiResponse => { },
       err => {
@@ -96,7 +97,7 @@ describe('AnnouncementService', () => {
 
   it('should make read api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
-    spyOn(service, 'readAnnouncement').and.callFake(() => Observable.of(testData.mockRes.readSuccess));
+    spyOn(service, 'post').and.callFake(() => Observable.of(testData.mockRes.readSuccess));
     service.readAnnouncement(params).subscribe(
       apiResponse => {
         expect(apiResponse.responseCode).toBe('OK');
@@ -107,7 +108,7 @@ describe('AnnouncementService', () => {
 
   it('should make read api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
-    spyOn(service, 'readAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.readError));
+    spyOn(service, 'post').and.callFake(() => Observable.throw(testData.mockRes.readError));
     service.readAnnouncement(params).subscribe(
       apiResponse => { },
       err => {
@@ -120,7 +121,7 @@ describe('AnnouncementService', () => {
 
   it('should make delete api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba' } } };
-    spyOn(service, 'deleteAnnouncement').and.callFake(() => Observable.of(testData.mockRes.deleteSuccess));
+    spyOn(service, 'delete').and.callFake(() => Observable.of(testData.mockRes.deleteSuccess));
     service.deleteAnnouncement(params).subscribe(
       (apiResponse: any) => {
         expect(apiResponse.responseCode).toBe('OK');
@@ -131,7 +132,7 @@ describe('AnnouncementService', () => {
 
   it('should make delete api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba' } } };
-    spyOn(service, 'deleteAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.deleteError));
+    spyOn(service, 'delete').and.callFake(() => Observable.throw(testData.mockRes.deleteError));
     service.deleteAnnouncement(params).subscribe(
       apiResponse => { },
       err => {
