@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { AnnouncementService, PagerService, ResourceService} from '../../index';
+import { AnnouncementService, PaginationService, ResourceService } from '../../index';
+import * as appConfig from './../../../../config/app.config.json';
+const pageConfig = (<any>appConfig);
 
 /**
- * The announcement outbox component
- *
- * Display announcement outbox list
+ * The announcement outbox component displays all
+ * the announcement which is created by the logged in user
+ * have announcement creator access
  */
 @Component({
   selector: 'app-outbox',
@@ -26,19 +28,9 @@ export class OutboxComponent {
   result: any;
 
   /**
-	 * Contains unique announcement id
-	 */
-  announcementId: string;
-
-  /**
 	 * To show / hide loader
 	 */
   showLoader = true;
-
-  /**
-	 * To show / hide listing block
-	 */
-  showDataDiv = false;
 
   /**
 	 * To show / hide error
@@ -46,14 +38,9 @@ export class OutboxComponent {
   showError = false;
 
   /**
-	 * To show / hide delete confirm box
-	 */
-  showDeleteModal = false;
-
-  /**
 	 * Contains page limit of outbox list
 	 */
-  pageLimit = 25;
+  pageLimit = pageConfig.OUTBOX.PAGE_LIMIT;
 
   /**
 	 * Contains page number of outbox list
@@ -71,21 +58,51 @@ export class OutboxComponent {
   pager: any;
 
   /**
+   * To make outbox API calls
+   */
+  private announcementService: AnnouncementService;
+
+  /**
+   * To navigate to other pages
+   */
+  route: Router;
+
+  /**
+   * To get params from url
+   */
+  private activatedRoute: ActivatedRoute;
+
+  /**
+   * To call resource service which helps to use language constant
+   */
+  private resourceService: ResourceService;
+
+  /**
+   * To call pagination service
+   */
+  private paginationService: PaginationService;
+
+  /**
 	 * Constructor to create injected service(s) object
 	 *
 	 * Default method of AnnouncementService class
 	 *
-   * @param {AnnouncementService} AnnouncementService To make API calls
-   * @param {Router} Route To navigate to other pages
-   * @param {ActivatedRoute} ActivatedRoute To get params from url
+   * @param {AnnouncementService} announcementService To make outbox API calls
+   * @param {Router} route To navigate to other pages
+   * @param {ActivatedRoute} activatedRoute To get params from url
    * @param {ResourceService} resourceService To call resource service which helps to use language constant
-   * @param {PagerService} PagerService To call pagination service
+   * @param {PaginationService} paginationService To call pagination service
 	 */
-  constructor(private announcementService: AnnouncementService,
-    private Route: Router,
-    private activatedRoute: ActivatedRoute,
-    public resourceService: ResourceService,
-    private pagerService: PagerService) {
+  constructor(announcementService: AnnouncementService,
+    route: Router,
+    activatedRoute: ActivatedRoute,
+    resourceService: ResourceService,
+    paginationService: PaginationService) {
+    this.announcementService = announcementService;
+    this.route = route;
+    this.activatedRoute = activatedRoute;
+    this.resourceService = resourceService;
+    this.paginationService = paginationService;
     this.activatedRoute.params.subscribe(params => {
       this.pageNumber = Number(params.pageNumber);
       this.renderOutbox(this.pageLimit, this.pageNumber);
@@ -104,7 +121,6 @@ export class OutboxComponent {
 	 */
   renderOutbox(limit: number, pageNumber: number) {
     this.showLoader = true;
-    this.showDataDiv = false;
     this.pageNumber = pageNumber;
     this.pageLimit = limit;
 
@@ -118,9 +134,8 @@ export class OutboxComponent {
         this.outboxData = apiResponse.result.announcements;
         this.result = apiResponse.result;
         this.showLoader = false;
-        this.showDataDiv = true;
         this.totalCount = apiResponse.result.count;
-        this.pager = this.pagerService.getPager(apiResponse.result.count, this.pageNumber, this.pageLimit);
+        this.pager = this.paginationService.getPager(apiResponse.result.count, this.pageNumber, this.pageLimit);
       },
       err => {
         // console.log('err', err.error.params.errmsg)
@@ -141,28 +156,19 @@ export class OutboxComponent {
 	 */
   setPage(page: number) {
     if (page < 1 || page > this.pager.totalPages) {
-      return;
+      return false;
     }
     this.pageNumber = page;
-    this.Route.navigate(['migration/announcement/outbox', this.pageNumber]);
+    this.route.navigate(['migration/announcement/outbox', this.pageNumber]);
   }
 
   /**
-   * This method calls the delete API with a particular announcement
-   * id and and changes the status to cancelled of that particular
-   * announcement.
+   * This method calls the delete component with
+   * the specific announcement id
 	 *
+	 * @param {string} announcementId Clicked announcement id which will be deleted
 	 */
-  deleteAnnouncement() {
-    const option = { announcementId: this.announcementId };
-    this.announcementService.deleteAnnouncement(option).subscribe(
-      apiResponse => {
-        console.log('deleted');
-        this.renderOutbox(this.pageLimit, this.pageNumber);
-      },
-      err => {
-        this.showError = true;
-      }
-    );
+  deleteAnnouncement(announcementId: string) {
+    this.route.navigate(['migration/announcement/outbox/', this.pageNumber, 'delete', announcementId]);
   }
 }

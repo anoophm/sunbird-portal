@@ -16,7 +16,7 @@
       </div>
     </div>
   </div>
-  <div class="ui grid" *ngIf="showDataDiv">
+  <div class="ui grid" *ngIf="outboxData && outboxData.length > 0 && !showLoader">
     <div class="one wide column"></div>
     <div class="ten wide column">
       <div class="ui grid">
@@ -44,7 +44,7 @@
       <app-loader></app-loader>
     </div>
   </div>
-  <div class="ui grid" *ngIf="!showDataDiv && !showLoader">
+  <div class="ui grid" *ngIf="outboxData && outboxData.length === 0 && !showLoader">
     <div class="one wide column"></div>
     <div class="ten wide column">
       <div class="ui warning message">
@@ -53,7 +53,7 @@
       </div>
     </div>
   </div>
-  <div class="margin-top-10" *ngIf="showDataDiv">
+  <div class="margin-top-10" *ngIf="outboxData && outboxData.length > 0 && !showLoader">
     <div class="resource-padding ui grid">
       <div class="one wide column"></div>
       <div class="ten wide column">
@@ -76,7 +76,7 @@
                 <td>{{item.metrics.sent ? item.metrics.sent : "N/A"}}</td>
                 <td>{{item.metrics.received ? item.metrics.received : "N/A"}}</td>
                 <td>{{item.metrics.read ? item.metrics.read : "N/A"}}</td>
-                <td class="cursor-pointer announcementRedText" (click)="announcementId = item.id; showDeleteModal = true" *ngIf="item.status === 'active'"><i class="icon trash"></i>{{resourceService?.frmelmnts?.lbl?.anncmntoutboxdelete}}</td>
+                <td class="cursor-pointer announcementRedText" (click)="deleteAnnouncement(item.id)" *ngIf="item.status === 'active'"><i class="icon trash"></i>{{resourceService?.frmelmnts?.lbl?.anncmntoutboxdelete}}</td>
                 <td (click)="getResend(item.id, item.title);" *ngIf="item.status == 'cancelled'" class="cursor-pointer announcementBlueText"><i class="external share icon"></i>{{resourceService?.frmelmnts?.lbl?.anncmntoutboxresend}}</td>
               </tr>
             </tbody>
@@ -85,7 +85,7 @@
       </div>
     </div>
   </div>
-  <div class="ui grid" *ngIf="showDataDiv">
+  <div class="ui grid" *ngIf="outboxData && outboxData.length > 0 && !showLoader">
     <div class="one wide column"></div>
     <div class="ui grid">
       <div class="twelve wide column">
@@ -95,27 +95,4 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- Announcement delete confirmation modal -->
-<div *ngIf="showDeleteModal">
-  <sui-modal [isClosable]="true" (dismissed)="showDeleteModal = false" #modal>
-
-    <div class="content">
-      <div class="ui center aligned segment">
-        <div class="ui basic icon circular button deny">
-          <i class="ui huge help outline icon"></i>
-        </div>
-        <br/><br/>
-        <div class="header cardsHeading">{{resourceService?.frmelmnts?.lbl?.anncmntcancelconfirm}}</div>
-        <br/>
-        <div class="announcement-description">
-          {{resourceService?.frmelmnts?.lbl?.anncmntcancelconfirmdescrption}}
-        </div>
-        <br/><br/>
-        <button class="ui basic button announcementButton btn-width-26 announcementButtonText" (click)="modal.approve('done'); deleteAnnouncement();"> {{resourceService?.frmelmnts?.btn?.yes}} </button>
-        <button class="ui button primary announcementButton btn-width-26 close" (click)="modal.deny()"> {{resourceService?.frmelmnts?.btn?.no}} </button>
-      </div>
-    </div>
-  </sui-modal>
 </div>

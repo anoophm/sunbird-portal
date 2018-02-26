@@ -2,9 +2,9 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnnouncementRoutingModule } from './announcement-routing.module';
 import { SuiModule } from 'ng2-semantic-ui';
-import { OutboxComponent } from './components/outbox/outbox.component';
 
-import { AnnouncementService, PagerService, ResourceService, AppCommonModule} from './index';
+import { AnnouncementService, PaginationService, ResourceService, AppCommonModule} from './index';
+import { OutboxComponent, DeleteComponent} from './components/index';
 
 @NgModule({
   imports: [
@@ -13,7 +13,7 @@ import { AnnouncementService, PagerService, ResourceService, AppCommonModule} fr
     AppCommonModule,
     SuiModule
   ],
-  declarations: [OutboxComponent],
-  providers: [AnnouncementService, PagerService, ResourceService]
+  declarations: [OutboxComponent, DeleteComponent],
+  providers: [AnnouncementService, PaginationService, ResourceService]
 })
 export class AnnouncementModule { }

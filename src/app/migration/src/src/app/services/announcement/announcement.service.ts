@@ -1,11 +1,13 @@
 import { DataService } from './../data/data.service';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import * as  urlConfig from './../../config/url.config.json';
+import * as  urlConf from './../../config/url.config.json';
+import * as  appConfig from './../../config/app.config.json';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/observable/throw';
 import { Observable } from 'rxjs/Observable';
-const urlConFig = (<any>urlConfig);
+const urlConfig = (<any>urlConf);
+const pageConfig = (<any>appConfig);
 
 /**
  * Interface to hold api request pageNumber, limit, announcementId and data
@@ -25,7 +27,8 @@ interface RequestParam {
 @Injectable()
 
 /**
- * @class AnnouncementService
+ * AnnouncementService extends dataservice where
+ * get, post, delete etc methods are written
  */
 export class AnnouncementService extends DataService {
 
@@ -35,7 +38,7 @@ export class AnnouncementService extends DataService {
    * @param {HttpClient} http To make API calls
    */
   constructor(public http: HttpClient) {
-    super(http, urlConFig.URLS.ANNOUNCEMENT_PREFIX);
+    super(http, urlConfig.URLS.ANNOUNCEMENT_PREFIX);
   }
 
   /**
@@ -45,7 +48,7 @@ export class AnnouncementService extends DataService {
   */
   getInboxData(requestParam: RequestParam) {
     const option = {
-      url: urlConFig.URLS.ANNOUNCEMENT.INBOX_LIST,
+      url: urlConfig.URLS.ANNOUNCEMENT.INBOX_LIST,
       data: {
         'request': {
           'limit': requestParam.limit,
@@ -63,7 +66,7 @@ export class AnnouncementService extends DataService {
   */
   getOutboxData(requestParam: RequestParam) {
     const option = {
-      url: urlConFig.URLS.ANNOUNCEMENT.OUTBOX_LIST,
+      url: urlConfig.URLS.ANNOUNCEMENT.OUTBOX_LIST,
       data: {
         'request': {
           'limit': requestParam.limit,
@@ -81,11 +84,11 @@ export class AnnouncementService extends DataService {
   */
   receivedAnnouncement(requestParam: RequestParam) {
     const option = {
-      url: urlConFig.URLS.ANNOUNCEMENT.RECEIVED,
+      url: urlConfig.URLS.ANNOUNCEMENT.RECEIVED,
       data: {
         'request': {
           'announcementId': requestParam.announcementId,
-          'channel': 'web'
+          'channel': pageConfig.API.ANNOUNCEMENT.CHANNEL
         }
       }
     };
@@ -99,11 +102,11 @@ export class AnnouncementService extends DataService {
   */
   readAnnouncement(requestParam: RequestParam) {
     const option = {
-      url: urlConFig.URLS.ANNOUNCEMENT.READ,
+      url: urlConfig.URLS.ANNOUNCEMENT.READ,
       data: {
         'request': {
           'announcementId': requestParam.announcementId,
-          'channel': 'web'
+          'channel': pageConfig.API.ANNOUNCEMENT.CHANNEL
         }
       }
     };
@@ -117,7 +120,7 @@ export class AnnouncementService extends DataService {
   */
   deleteAnnouncement(requestParam: RequestParam) {
     const option = {
-      url: urlConFig.URLS.ANNOUNCEMENT.CANCEL,
+      url: urlConfig.URLS.ANNOUNCEMENT.CANCEL,
       data: {
         'request': {
           'announcementId': requestParam.announcementId

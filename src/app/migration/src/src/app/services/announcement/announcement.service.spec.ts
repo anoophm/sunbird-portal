@@ -1,6 +1,7 @@
 import { TestBed, inject } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import * as testData from './announcement.service.spec.data';
 
 // Import rxjs packages
 import 'rxjs/add/operator/map';
@@ -21,61 +22,123 @@ describe('AnnouncementService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('should make inbox api call', inject([AnnouncementService], (service: AnnouncementService) => {
+  it('should make inbox api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
+    const params = { data: { 'request': { 'limit': 10, 'offset': 10 } } };
+    spyOn(service, 'getInboxData').and.callFake(() => Observable.of(testData.mockRes.inboxSuccess));
+    service.getInboxData(params).subscribe(
+      apiResponse => {
+        expect(apiResponse.responseCode).toBe('OK');
+        expect(apiResponse.result.count).toBe(1169);
+      }
+    );
+  }));
+
+  it('should make inbox api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
+    const params = { data: { 'request': { 'limit': 10, 'offset': 10 } } };
+    spyOn(service, 'getInboxData').and.callFake(() => Observable.throw(testData.mockRes.inboxError));
+    service.getInboxData(params).subscribe(
+      apiResponse => { },
+      err => {
+        expect(err.params.errmsg).toBe('Cannot set property of undefined');
+        expect(err.params.status).toBe('failed');
+        expect(err.responseCode).toBe('CLIENT_ERROR');
+      }
+    );
+  }));
+
+  it('should make outbox api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'limit': 25, 'offset': 10 } } };
-    const mockResponse = { 'id': 'api.plugin.announcement.user.inbox', 'ver': '1.0', 'ts': '2018-02-21 07:12:21:117+0000',
-    'params': { 'resmsgid': '8ee7d2d0-16d6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-    'responseCode': 'OK', 'result': { 'count': 1169, 'announcements': [{ 'id': '7ffbff00-160c-11e8-b9b4-393f76d4675b',
-    'from': 'asdasd', 'type': 'Circular', 'title': 'wsw', 'description': 'asda', 'links': [], 'attachments': [],
-    'createdDate': '2018-02-20 07:05:57:744+0000', 'status': 'cancelled', 'target': { 'geo': { 'ids': ['01236686178285977611'] } },
-    'metrics': { 'sent': 0, 'read': 0, 'received': 0 } }] } };
-    spyOn(service, 'post').and.callFake(() => Observable.of(mockResponse));
-    service.getInboxData(params);
+    spyOn(service, 'getOutboxData').and.callFake(() => Observable.of(testData.mockRes.outBoxSuccess));
+    service.getOutboxData(params).subscribe(
+      apiResponse => {
+        expect(apiResponse.responseCode).toBe('OK');
+        expect(apiResponse.result.count).toBe(1000);
+      }
+    );
   }));
 
-  it('should make outbox api call', inject([AnnouncementService], (service: AnnouncementService) => {
+  it('should make outbox api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'limit': 25, 'offset': 10 } } };
-    const mockResponse = { 'id': 'api.plugin.announcement.user.outbox', 'ver': '1.0', 'ts': '2018-02-21 07:12:21:117+0000',
-    'params': { 'resmsgid': '8ee7d2d0-16d6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-    'responseCode': 'OK', 'result': { 'count': 1169, 'announcements': [{ 'id': '7ffbff00-160c-11e8-b9b4-393f76d4675b',
-    'from': 'asdasd', 'type': 'Circular', 'title': 'wsw', 'description': 'asda', 'links': [], 'attachments': [],
-    'createdDate': '2018-02-20 07:05:57:744+0000', 'status': 'cancelled', 'target': { 'geo': { 'ids': ['01236686178285977611'] } },
-    'metrics': { 'sent': 0, 'read': 0, 'received': 0 } }] } };
-    spyOn(service, 'post').and.callFake(() => Observable.of(mockResponse));
-    service.getOutboxData(params);
+    spyOn(service, 'getOutboxData').and.callFake(() => Observable.throw(testData.mockRes.outboxError));
+    service.getOutboxData(params).subscribe(
+      apiResponse => { },
+      err => {
+        expect(err.params.errmsg).toBe('Cannot set property of undefined');
+        expect(err.params.status).toBe('failed');
+        expect(err.responseCode).toBe('CLIENT_ERROR');
+      }
+    );
   }));
 
-  it('should make received api call', inject([AnnouncementService], (service: AnnouncementService) => {
+  it('should make received api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
-    const mockResponse = { 'id': 'api.plugin.announcement.user.received', 'ver': '1.0', 'ts': '2018-02-21 07:12:21:117+0000',
-    'params': { 'resmsgid': '8ee7d2d0-16d6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-    'responseCode': 'OK', 'result': { 'count': 1169, 'announcements': [{ 'id': '7ffbff00-160c-11e8-b9b4-393f76d4675b',
-    'from': 'asdasd', 'type': 'Circular', 'title': 'wsw', 'description': 'asda', 'links': [], 'attachments': [],
-    'createdDate': '2018-02-20 07:05:57:744+0000', 'status': 'cancelled', 'target': { 'geo': { 'ids': ['01236686178285977611'] } },
-    'metrics': { 'sent': 0, 'read': 0, 'received': 0 } }] } };
-    spyOn(service, 'post').and.callFake(() => Observable.of(mockResponse));
-    service.receivedAnnouncement(params);
+    spyOn(service, 'receivedAnnouncement').and.callFake(() => Observable.of(testData.mockRes.receivedSuccess));
+    service.receivedAnnouncement(params).subscribe(
+      apiResponse => {
+        expect(apiResponse.responseCode).toBe('OK');
+        expect(apiResponse.params.status).toBe('successful');
+      }
+    );
   }));
 
-  it('should make read api call', inject([AnnouncementService], (service: AnnouncementService) => {
+  it('should make received api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
     const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
-    const mockResponse = { 'id': 'api.plugin.announcement.user.read', 'ver': '1.0', 'ts': '2018-02-21 07:12:21:117+0000',
-    'params': { 'resmsgid': '8ee7d2d0-16d6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-    'responseCode': 'OK', 'result': { 'count': 1169, 'announcements': [{ 'id': '7ffbff00-160c-11e8-b9b4-393f76d4675b',
-    'from': 'asdasd', 'type': 'Circular', 'title': 'wsw', 'description': 'asda', 'links': [], 'attachments': [],
-    'createdDate': '2018-02-20 07:05:57:744+0000', 'status': 'cancelled', 'target': { 'geo': { 'ids': ['01236686178285977611'] } },
-    'metrics': { 'sent': 0, 'read': 0, 'received': 0 } }] } };
-    spyOn(service, 'post').and.callFake(() => Observable.of(mockResponse));
-    service.readAnnouncement(params);
+    spyOn(service, 'receivedAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.receivedError));
+    service.receivedAnnouncement(params).subscribe(
+      apiResponse => { },
+      err => {
+        expect(err.params.errmsg).toBe('Unauthorized User');
+        expect(err.params.status).toBe('failed');
+        expect(err.responseCode).toBe('CLIENT_ERROR');
+      }
+    );
   }));
 
-  it('should make delete api call', inject([AnnouncementService], (service: AnnouncementService) => {
-    const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba'} } };
-    const mockResponse = { 'id': 'api.plugin.announcement.cancel', 'ver': '1.0', 'ts': '2018-02-21 09:06:45:999+0000',
-    'params': { 'resmsgid': '8ab1aff0-16e6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-    'responseCode': 'OK', 'result': { 'status': 'cancelled' } };
-    spyOn(service, 'delete').and.callFake(() => Observable.of(mockResponse));
-    service.deleteAnnouncement(params);
+  it('should make read api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
+    const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
+    spyOn(service, 'readAnnouncement').and.callFake(() => Observable.of(testData.mockRes.readSuccess));
+    service.readAnnouncement(params).subscribe(
+      apiResponse => {
+        expect(apiResponse.responseCode).toBe('OK');
+        expect(apiResponse.params.status).toBe('successful');
+      }
+    );
   }));
 
+  it('should make read api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
+    const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba', 'channel': 'web' } } };
+    spyOn(service, 'readAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.readError));
+    service.readAnnouncement(params).subscribe(
+      apiResponse => { },
+      err => {
+        expect(err.params.errmsg).toBe('Unauthorized User');
+        expect(err.params.status).toBe('failed');
+        expect(err.responseCode).toBe('CLIENT_ERROR');
+      }
+    );
+  }));
+
+  it('should make delete api call and get success response', inject([AnnouncementService], (service: AnnouncementService) => {
+    const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba' } } };
+    spyOn(service, 'deleteAnnouncement').and.callFake(() => Observable.of(testData.mockRes.deleteSuccess));
+    service.deleteAnnouncement(params).subscribe(
+      (apiResponse: any) => {
+        expect(apiResponse.responseCode).toBe('OK');
+        expect(apiResponse.params.status).toBe('successful');
+      }
+    );
+  }));
+
+  it('should make delete api call and get error response', inject([AnnouncementService], (service: AnnouncementService) => {
+    const params = { data: { 'request': { 'announcementId': 'fa355310-0b09-11e8-93d1-2970a259a0ba' } } };
+    spyOn(service, 'deleteAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.deleteError));
+    service.deleteAnnouncement(params).subscribe(
+      apiResponse => { },
+      err => {
+        expect(err.params.errmsg).toBe('Unauthorized User!22');
+        expect(err.params.status).toBe('failed');
+        expect(err.responseCode).toBe('CLIENT_ERROR');
+      }
+    );
+  }));
 });

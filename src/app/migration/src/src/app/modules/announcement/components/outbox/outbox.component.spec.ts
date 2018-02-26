@@ -1,4 +1,5 @@
 import { async, ComponentFixture, TestBed, inject, fakeAsync, tick } from '@angular/core/testing';
+import * as testData from './outbox.component.spec.data';
 import { Component, OnInit } from '@angular/core';
 import * as _ from 'lodash';
 import { Observable } from 'rxjs/Rx';
@@ -9,9 +10,12 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 
-import { OutboxComponent} from '../index';
-import { AnnouncementService, PagerService, ResourceService} from '../../index';
-import {  AppCommonModule} from '../../index';
+import { OutboxComponent } from '../index';
+import { AnnouncementService, PaginationService, ResourceService } from '../../index';
+import { AppCommonModule } from '../../index';
+
+import * as appConfig from './../../../../config/app.config.json';
+const pageConfig = (<any>appConfig);
 
 describe('OutboxComponent', () => {
     let component: OutboxComponent;
@@ -28,7 +32,7 @@ describe('OutboxComponent', () => {
                 SuiModule,
                 AppCommonModule],
             providers: [HttpClientModule, AnnouncementService,
-                PagerService,
+                PaginationService,
 
                 ResourceService,
                 { provide: Router, useClass: RouterStub },
@@ -49,48 +53,64 @@ describe('OutboxComponent', () => {
     });
 
     it('should call outbox api and get success response', inject([AnnouncementService], (announcementService) => {
-        const mockRes = { 'id': 'api.plugin.announcement.user.outbox', 'ver': '1.0', 'ts': '2018-02-21 07:12:21:117+0000',
-        'params': { 'resmsgid': '8ee7d2d0-16d6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-        'responseCode': 'OK', 'result': { 'count': 1169, 'announcements': [{ 'id': '7ffbff00-160c-11e8-b9b4-393f76d4675b',
-        'from': 'asdasd', 'type': 'Circular', 'title': 'wsw', 'description': 'asda', 'links': [],
-        'attachments': [], 'createdDate': '2018-02-20 07:05:57:744+0000', 'status': 'cancelled',
-        'target': { 'geo': { 'ids': ['01236686178285977611'] } }, 'metrics': { 'sent': 0, 'read': 0, 'received': 0 } }] } };
-        spyOn(announcementService, 'getOutboxData').and.callFake(() => Observable.of(mockRes));
-        component.renderOutbox(10, 1);
+        spyOn(announcementService, 'getOutboxData').and.callFake(() => Observable.of(testData.mockRes.outBoxSuccess));
+        component.renderOutbox(5, 1);
+        const params = { pageNumber: 2, limit: 1 };
+        announcementService.getOutboxData(params).subscribe(
+            apiResponse => {
+                expect(apiResponse.responseCode).toBe('OK');
+                expect(apiResponse.result.count).toBe(1169);
+                expect(apiResponse.params.status).toBe('successful');
+            }
+        );
+        fixture.detectChanges();
         expect(component.showLoader).toBe(false);
-        expect(component.showDataDiv).toBe(true);
+        expect(component.pageNumber).toBe(1);
+        expect(component.pageLimit).toBe(5);
     }));
 
     it('should call outbox api and get error response', inject([AnnouncementService], (announcementService) => {
-        const mockRes = { 'id': 'api.plugin.announcement.user.outbox', 'ver': '1.0', 'ts': '2018-02-21 07:12:21:117+0000',
-        'params': { 'resmsgid': '8ee7d2d0-16d6-11e8-b881-f9ecfdfe4059', 'msgid': null, 'status': 'successful', 'err': '', 'errmsg': '' },
-        'responseCode': 'OK', 'result': { 'count': 1169, 'announcements': [{ 'id': '7ffbff00-160c-11e8-b9b4-393f76d4675b', 'from': 'asdasd',
-        'type': 'Circular', 'title': 'wsw', 'description': 'asda', 'links': [], 'attachments': [],
-        'createdDate': '2018-02-20 07:05:57:744+0000', 'status': 'cancelled', 'target': { 'geo': { 'ids': ['01236686178285977611'] } },
-        'metrics': { 'sent': 0, 'read': 0, 'received': 0 } }] } };
-        spyOn(announcementService, 'getOutboxData').and.callFake(() => Observable.throw({}));
-        component.renderOutbox(10, 1);
+        spyOn(announcementService, 'getOutboxData').and.callFake(() => Observable.throw(testData.mockRes.outboxError));
+        component.renderOutbox(10, 3);
+        const params = {};
+        announcementService.getOutboxData({}).subscribe(
+            apiResponse => {},
+            err => {
+                expect(err.params.errmsg).toBe('Cannot set property of undefined');
+                expect(err.params.status).toBe('failed');
+                expect(err.responseCode).toBe('CLIENT_ERROR');
+            }
+        );
+        fixture.detectChanges();
         expect(component.showLoader).toBe(false);
         expect(component.showError).toBe(true);
+        expect(component.pageNumber).toBe(3);
+        expect(component.pageLimit).toBe(10);
     }));
 
-    it('should call setpage method', () => {
+    it('should call setpage method and set proper page number', () => {
         component.pager = {};
-        component.pager.totalPages = 0;
-        component.setPage(1);
+        component.pager.totalPages = 10;
+        component.setPage(3);
+        fixture.detectChanges();
+        expect(component.pageNumber).toEqual(3);
+        expect(component.pageLimit).toEqual(pageConfig.OUTBOX.PAGE_LIMIT);
     });
 
-    it('should call delete api and get success response', inject([AnnouncementService], (announcementService) => {
-        const mockRes = { 'id': 'api.plugin.announcement.cancel', 'ver': '1.0', 'ts': '2018-02-21 09:06:45:999+0000',
-        'params': { 'resmsgid': '8ab1aff0-16e6-11e8-b881-f9ecfdfe4059', 'msgid': null,
-        'status': 'successful', 'err': '', 'errmsg': '' }, 'responseCode': 'OK', 'result': { 'status': 'cancelled' } };
-        spyOn(announcementService, 'deleteAnnouncement').and.callFake(() => Observable.of(mockRes));
-        component.deleteAnnouncement();
-    }));
+    it('should call setpage method and page number should be default, i,e 1', () => {
+        component.pager = {};
+        component.pager.totalPages = 0;
+        component.setPage(3);
+        fixture.detectChanges();
+        expect(component.pageNumber).toEqual(1);
+        expect(component.pageLimit).toEqual(pageConfig.OUTBOX.PAGE_LIMIT);
+    });
 
-    it('should call delete api and get error response', inject([AnnouncementService], (announcementService) => {
-        spyOn(announcementService, 'deleteAnnouncement').and.callFake(() => Observable.throw({}));
-        component.deleteAnnouncement();
-        expect(component.showError).toBe(true);
-    }));
+    it('should call deleteAnnouncement', () => {
+        component.deleteAnnouncement('7ffbff00-160c-11e8-b9b4-393f76d4675b');
+        fixture.detectChanges();
+        expect(component).toBeTruthy();
+        expect(component.pageLimit).toEqual(pageConfig.OUTBOX.PAGE_LIMIT);
+        expect(component.pageNumber).toEqual(1);
+    });
 });
