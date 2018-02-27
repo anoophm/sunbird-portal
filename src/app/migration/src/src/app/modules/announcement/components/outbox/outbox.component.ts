@@ -161,14 +161,4 @@ export class OutboxComponent {
     this.pageNumber = page;
     this.route.navigate(['migration/announcement/outbox', this.pageNumber]);
   }
-
-  /**
-   * This method calls the delete component with
-   * the specific announcement id
-	 *
-	 * @param {string} announcementId Clicked announcement id which will be deleted
-	 */
-  deleteAnnouncement(announcementId: string) {
-    this.route.navigate(['migration/announcement/outbox/', this.pageNumber, 'delete', announcementId]);
-  }
 }

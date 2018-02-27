@@ -42,6 +42,8 @@ describe('OutboxComponent', () => {
             .compileComponents();
     }));
 
+    
+
     beforeEach(() => {
         fixture = TestBed.createComponent(OutboxComponent);
         component = fixture.componentInstance;
@@ -57,16 +59,18 @@ describe('OutboxComponent', () => {
         component.renderOutbox(5, 1);
         const params = { pageNumber: 2, limit: 1 };
         announcementService.getOutboxData(params).subscribe(
-            apiResponse => {
-                expect(apiResponse.responseCode).toBe('OK');
-                expect(apiResponse.result.count).toBe(1169);
-                expect(apiResponse.params.status).toBe('successful');
+            outboxResponse => {
+                component.outboxData = outboxResponse.result.announcements;
             }
         );
         fixture.detectChanges();
         expect(component.showLoader).toBe(false);
         expect(component.pageNumber).toBe(1);
         expect(component.pageLimit).toBe(5);
+        expect(component.outboxData.responseCode).toBe('OK');
+        expect(component.outboxData.result.count).toBe(1169);
+        expect(component.outboxData.params.status).toBe('successful');
+        console.log('--------------------------------', component.outboxData);
     }));
 
     it('should call outbox api and get error response', inject([AnnouncementService], (announcementService) => {
@@ -104,13 +108,5 @@ describe('OutboxComponent', () => {
         fixture.detectChanges();
         expect(component.pageNumber).toEqual(1);
         expect(component.pageLimit).toEqual(pageConfig.OUTBOX.PAGE_LIMIT);
-    });
-
-    it('should call deleteAnnouncement', () => {
-        component.deleteAnnouncement('7ffbff00-160c-11e8-b9b4-393f76d4675b');
-        fixture.detectChanges();
-        expect(component).toBeTruthy();
-        expect(component.pageLimit).toEqual(pageConfig.OUTBOX.PAGE_LIMIT);
-        expect(component.pageNumber).toEqual(1);
     });
 });
