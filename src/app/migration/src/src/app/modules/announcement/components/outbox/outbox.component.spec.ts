@@ -42,7 +42,7 @@ describe('OutboxComponent', () => {
             .compileComponents();
     }));
 
-    
+
 
     beforeEach(() => {
         fixture = TestBed.createComponent(OutboxComponent);
@@ -60,7 +60,7 @@ describe('OutboxComponent', () => {
         const params = { pageNumber: 2, limit: 1 };
         announcementService.getOutboxData(params).subscribe(
             outboxResponse => {
-                component.outboxData = outboxResponse.result.announcements;
+                component.outboxData = outboxResponse;
             }
         );
         fixture.detectChanges();
@@ -70,7 +70,6 @@ describe('OutboxComponent', () => {
         expect(component.outboxData.responseCode).toBe('OK');
         expect(component.outboxData.result.count).toBe(1169);
         expect(component.outboxData.params.status).toBe('successful');
-        console.log('--------------------------------', component.outboxData);
     }));
 
     it('should call outbox api and get error response', inject([AnnouncementService], (announcementService) => {
@@ -78,7 +77,7 @@ describe('OutboxComponent', () => {
         component.renderOutbox(10, 3);
         const params = {};
         announcementService.getOutboxData({}).subscribe(
-            apiResponse => {},
+            outboxResponse => { },
             err => {
                 expect(err.params.errmsg).toBe('Cannot set property of undefined');
                 expect(err.params.status).toBe('failed');
@@ -87,7 +86,6 @@ describe('OutboxComponent', () => {
         );
         fixture.detectChanges();
         expect(component.showLoader).toBe(false);
-        expect(component.showError).toBe(true);
         expect(component.pageNumber).toBe(3);
         expect(component.pageLimit).toBe(10);
     }));

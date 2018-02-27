@@ -33,11 +33,6 @@ export class OutboxComponent {
   showLoader = true;
 
   /**
-	 * To show / hide error
-	 */
-  showError = false;
-
-  /**
 	 * Contains page limit of outbox list
 	 */
   pageLimit = pageConfig.OUTBOX.PAGE_LIMIT;
@@ -139,7 +134,6 @@ export class OutboxComponent {
       },
       err => {
         // console.log('err', err.error.params.errmsg)
-        this.showError = true;
         this.showLoader = false;
       }
     );
