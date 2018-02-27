@@ -9,8 +9,9 @@ import { SuiModule } from 'ng2-semantic-ui';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { Ng2IziToastModule } from 'ng2-izitoast';
 
-import { AnnouncementService, ResourceService, AppCommonModule} from '../../index';
+import { AnnouncementService, ResourceService, ToasterService, AppCommonModule } from '../../index';
 import { DeleteComponent } from './delete.component';
 
 describe('DeleteComponent', () => {
@@ -24,10 +25,10 @@ describe('DeleteComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [DeleteComponent],
-      imports: [HttpClientTestingModule,
+      imports: [HttpClientTestingModule, Ng2IziToastModule,
         SuiModule, AppCommonModule],
       providers: [HttpClientModule, AnnouncementService,
-        ResourceService,
+        ResourceService, ToasterService,
         { provide: Router, useClass: RouterStub },
         { provide: ActivatedRoute, useValue: fakeActivatedRoute }
       ]
@@ -57,29 +58,31 @@ describe('DeleteComponent', () => {
       }
     );
     fixture.detectChanges();
-    expect(component.showError).toBe(false);
   }));
 
-  it('should call delete api and get error response', inject([AnnouncementService], (announcementService) => {
-    spyOn(announcementService, 'deleteAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.deleteError));
-    component.deleteAnnouncement();
-    const params = { data: { 'request': { 'announcementId': '' } } };
-    announcementService.deleteAnnouncement(params).subscribe(
-      apiResponse => {
-      },
-      err => {
-        expect(err.params.errmsg).toBe('Unauthorized User!22');
-        expect(err.params.status).toBe('failed');
-        expect(err.responseCode).toBe('CLIENT_ERROR');
-      }
-    );
-    expect(component.showError).toBe(true);
-  }));
+  it('should call delete api and get error response', inject([AnnouncementService, ToasterService],
+    (announcementService, toasterService) => {
+      spyOn(announcementService, 'deleteAnnouncement').and.callFake(() => Observable.throw(testData.mockRes.deleteError));
+      spyOn(toasterService, 'error').and.callThrough();
+      component.deleteAnnouncement();
+      const param = { data: { 'request': { 'announcementId': '' } } };
+      announcementService.deleteAnnouncement(param).subscribe(
+        apiResponse => {
+        },
+        err => {
+          expect(err.error.params.errmsg).toBe('Unauthorized User');
+          expect(err.error.params.status).toBe('failed');
+          expect(err.error.responseCode).toBe('CLIENT_ERROR');
+          expect(toasterService.error).toHaveBeenCalledWith(err.error.params.errmsg);
+        }
+      );
+    }));
 
-  it('should call redirect', () => {
+  it('should call redirect', inject([Router], (route) => {
     component.redirect();
     fixture.detectChanges();
     expect(component).toBeTruthy();
     expect(component.pageNumber).toEqual(10);
-  });
+    expect(route.navigate).toHaveBeenCalledWith(['migration/announcement/outbox/', component.pageNumber]);
+  }));
 });

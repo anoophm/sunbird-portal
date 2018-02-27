@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { AnnouncementService, PaginationService, ResourceService } from '../../index';
+import { AnnouncementService, PaginationService, ResourceService, ToasterService} from '../../index';
 import * as appConfig from './../../../../config/app.config.json';
+
 const pageConfig = (<any>appConfig);
 
 /**
@@ -78,6 +79,11 @@ export class OutboxComponent {
   private paginationService: PaginationService;
 
   /**
+   * To call toaster service
+   */
+  private iziToast: ToasterService;
+
+  /**
 	 * Constructor to create injected service(s) object
 	 *
 	 * Default method of AnnouncementService class
@@ -87,17 +93,20 @@ export class OutboxComponent {
    * @param {ActivatedRoute} activatedRoute To get params from url
    * @param {ResourceService} resourceService To call resource service which helps to use language constant
    * @param {PaginationService} paginationService To call pagination service
+   * @param {ToasterService} iziToast To call toaster service
 	 */
   constructor(announcementService: AnnouncementService,
     route: Router,
     activatedRoute: ActivatedRoute,
     resourceService: ResourceService,
-    paginationService: PaginationService) {
+    paginationService: PaginationService,
+    iziToast: ToasterService) {
     this.announcementService = announcementService;
     this.route = route;
     this.activatedRoute = activatedRoute;
     this.resourceService = resourceService;
     this.paginationService = paginationService;
+    this.iziToast = iziToast;
     this.activatedRoute.params.subscribe(params => {
       this.pageNumber = Number(params.pageNumber);
       this.renderOutbox(this.pageLimit, this.pageNumber);
@@ -133,7 +142,7 @@ export class OutboxComponent {
         this.pager = this.paginationService.getPager(apiResponse.result.count, this.pageNumber, this.pageLimit);
       },
       err => {
-        // console.log('err', err.error.params.errmsg)
+        this.iziToast.error(err.error.params.errmsg);
         this.showLoader = false;
       }
     );

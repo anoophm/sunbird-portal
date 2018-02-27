@@ -22,6 +22,9 @@ import { AuthGuard } from './auth-guards/auth-guard.service';
 import { LearnerService } from './services/learner/learner.service';
 import { CommonModule } from '@angular/common';
 import { AnnouncementModule } from './modules/announcement/announcement.module';
+import { Ng2IziToastModule } from 'ng2-izitoast';
+import { ToasterService } from './services/toaster/toaster.service';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -39,7 +42,8 @@ import { AnnouncementModule } from './modules/announcement/announcement.module';
     SuiModule,
     ProfileModule,
     AppCommonModule,
-    AnnouncementModule
+    AnnouncementModule,
+    Ng2IziToastModule
   ],
   providers: [
     RouteResolveService,
@@ -51,6 +55,7 @@ import { AnnouncementModule } from './modules/announcement/announcement.module';
     ContentService,
     AnnouncementService,
     BadgesService,
+    ToasterService,
     {
       provide: 'USER_ID',
       useFactory: ( ) => {

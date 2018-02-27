@@ -15,10 +15,12 @@ export const mockRes = {
         }
     },
     outboxError: {
-        'id': 'api.plugin.announcement.user.outbox', 'ver': '1.0', 'ts': '2018-02-26 09:22:46:452+0000',
-        'params': {
-            'resmsgid': '9b3bef40-1ad6-11e8-98b8-5deaf514b022', 'msgid': null, 'status': 'failed', 'err': '',
-            'errmsg': 'Cannot set property of undefined'
-        }, 'responseCode': 'CLIENT_ERROR', 'result': {}
+        error: {
+            'id': 'api.plugin.announcement.user.outbox', 'ver': '1.0', 'ts': '2018-02-26 09:22:46:452+0000',
+            'params': {
+                'resmsgid': '9b3bef40-1ad6-11e8-98b8-5deaf514b022', 'msgid': null, 'status': 'failed', 'err': '',
+                'errmsg': 'Cannot set property of undefined'
+            }, 'responseCode': 'CLIENT_ERROR', 'result': {}
+        }
     }
 };

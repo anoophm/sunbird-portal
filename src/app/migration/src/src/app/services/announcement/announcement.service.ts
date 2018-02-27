@@ -6,18 +6,9 @@ import * as  appConfig from './../../config/app.config.json';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/observable/throw';
 import { Observable } from 'rxjs/Observable';
+import { AnnouncementSericeParam } from './../../interfaces';
 const urlConfig = (<any>urlConf);
 const pageConfig = (<any>appConfig);
-
-/**
- * Interface to hold api request pageNumber, limit, announcementId and data
- */
-interface RequestParam {
-  pageNumber?: number;
-  limit?: number;
-  announcementId?: string;
-  data?: object;
-}
 
 /**
  * Service for all announcement API calls
@@ -31,7 +22,6 @@ interface RequestParam {
  * get, post, delete etc methods are written
  */
 export class AnnouncementService extends DataService {
-
   /**
    * Constructor - default method of AnnouncementService class
    *
@@ -45,9 +35,9 @@ export class AnnouncementService extends DataService {
   * Method to make api call to get inbox data.
   * It calls the post method from data service class
   *
-  * @param {RequestParam} requestParam Request object needed for inbox API call
+  * @param {AnnouncementSericeParam} requestParam Request object needed for inbox API call
   */
-  getInboxData(requestParam: RequestParam) {
+  getInboxData(requestParam: AnnouncementSericeParam) {
     const option = {
       url: urlConfig.URLS.ANNOUNCEMENT.INBOX_LIST,
       data: {
@@ -66,7 +56,7 @@ export class AnnouncementService extends DataService {
   *
   * @param {RequestParam} requestParam Request object needed for outbox API call
   */
-  getOutboxData(requestParam: RequestParam) {
+  getOutboxData(requestParam: AnnouncementSericeParam) {
     const option = {
       url: urlConfig.URLS.ANNOUNCEMENT.OUTBOX_LIST,
       data: {
@@ -85,7 +75,7 @@ export class AnnouncementService extends DataService {
   *
   * @param {RequestParam} requestParam Request object needed for received API call
   */
-  receivedAnnouncement(requestParam: RequestParam) {
+  receivedAnnouncement(requestParam: AnnouncementSericeParam) {
     const option = {
       url: urlConfig.URLS.ANNOUNCEMENT.RECEIVED,
       data: {
@@ -104,7 +94,7 @@ export class AnnouncementService extends DataService {
   *
   * @param {RequestParam} requestParam Request object needed for read API call
   */
-  readAnnouncement(requestParam: RequestParam) {
+  readAnnouncement(requestParam: AnnouncementSericeParam) {
     const option = {
       url: urlConfig.URLS.ANNOUNCEMENT.READ,
       data: {
@@ -123,7 +113,7 @@ export class AnnouncementService extends DataService {
   *
   * @param {RequestParam} requestParam Request object needed for delete API call
   */
-  deleteAnnouncement(requestParam: RequestParam) {
+  deleteAnnouncement(requestParam: AnnouncementSericeParam) {
     const option = {
       url: urlConfig.URLS.ANNOUNCEMENT.CANCEL,
       data: {

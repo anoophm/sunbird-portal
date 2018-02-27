@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
-import { AnnouncementService, ResourceService } from '../../index';
+import { AnnouncementService, ResourceService, ToasterService } from '../../index';
 
 /**
  * The delete component deletes the announcement
@@ -24,11 +24,6 @@ export class DeleteComponent {
   pageNumber = 1;
 
   /**
-	 * To show / hide error
-	 */
-  showError = false;
-
-  /**
    * To make outbox API calls
    */
   private announcementService: AnnouncementService;
@@ -49,6 +44,11 @@ export class DeleteComponent {
   private resourceService: ResourceService;
 
   /**
+   * To call toaster service
+   */
+  private iziToast: ToasterService;
+
+  /**
 	 * Constructor to create injected service(s) object
 	 *
 	 * Default method of DeleteComponent class
@@ -57,15 +57,18 @@ export class DeleteComponent {
    * @param {Router} route To navigate to other pages
    * @param {ActivatedRoute} activatedRoute To get params from url
    * @param {ResourceService} resourceService To call resource service which helps to use language constant
+   * @param {ToasterService} iziToast To call toaster service
 	 */
   constructor(announcementService: AnnouncementService,
     route: Router,
     activatedRoute: ActivatedRoute,
-    resourceService: ResourceService) {
+    resourceService: ResourceService,
+    iziToast: ToasterService) {
     this.announcementService = announcementService;
     this.route = route;
     this.activatedRoute = activatedRoute;
     this.resourceService = resourceService;
+    this.iziToast = iziToast;
     this.activatedRoute.params.subscribe(params => {
       this.announcementId = params.announcementId;
       this.pageNumber = Number(params.pageNumber);
@@ -82,11 +85,12 @@ export class DeleteComponent {
     const option = { announcementId: this.announcementId };
     this.announcementService.deleteAnnouncement(option).subscribe(
       apiResponse => {
-        console.log('deleted');
+        this.iziToast.success('Succesfully deleted');
         this.redirect();
       },
       err => {
-         this.showError = true;
+        this.iziToast.error(err.error.params.errmsg);
+        this.redirect();
       }
     );
   }

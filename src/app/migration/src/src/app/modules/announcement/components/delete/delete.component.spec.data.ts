@@ -9,10 +9,12 @@ export const mockRes = {
         }
     },
     deleteError: {
-        'id': 'api.plugin.announcement.cancel', 'ver': '1.0', 'ts': '2018-02-26 08:29:15:944+0000',
-        'params': {
-            'resmsgid': '219f4a80-1acf-11e8-98b8-5deaf514b022', 'msgid': null, 'status': 'failed', 'err': '',
-            'errmsg': 'Unauthorized User!22'
-        }, 'responseCode': 'CLIENT_ERROR', 'result': {}
+        error: {
+            'id': 'api.plugin.announcement.cancel', 'ver': '1.0', 'ts': '2018-02-26 08:29:15:944+0000',
+            'params': {
+                'resmsgid': '219f4a80-1acf-11e8-98b8-5deaf514b022', 'msgid': null, 'status': 'failed', 'err': '',
+                'errmsg': 'Unauthorized User'
+            }, 'responseCode': 'CLIENT_ERROR', 'result': {}
+        }
     }
 };
