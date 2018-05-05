@@ -1,0 +1,58 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/app",
+    "baseUrl": "./",
+    "paths": {
+      "@sunbird/core": [
+        "app/modules/core"
+      ],
+      "@sunbird/community": [
+        "app/modules/community"
+      ],
+      "@sunbird/shared": [
+        "app/modules/shared"
+      ],
+      "@sunbird/home": [
+        "app/modules/home"
+      ],
+      "@sunbird/dashboard": [
+        "app/modules/dashboard"
+      ],
+      "@sunbird/announcement": [
+        "app/modules/announcement"
+      ],
+      "@sunbird/admin": [
+        "app/modules/admin"
+      ],
+      "@sunbird/resource": [
+        "app/modules/resource"
+      ],
+      "@sunbird/learn": [
+        "app/modules/learn"
+      ],
+      "@sunbird/workspace": [
+        "app/modules/workspace"
+      ], 
+      "@sunbird/org-management": [
+        "app/modules/org-management"
+      ],
+      "@sunbird/public": [
+        "app/modules/public"
+      ],
+      "@sunbird/profile": [
+        "app/modules/profile"
+      ],
+      "@sunbird/search": [
+        "app/modules/search"
+      ]
+    },
+    "module": "es2015",
+    "types": []
+  },
+  "exclude": [
+    "test.ts",
+    "**/*.spec.ts",
+    "**/*.spec.data.ts"
+  ]
+}

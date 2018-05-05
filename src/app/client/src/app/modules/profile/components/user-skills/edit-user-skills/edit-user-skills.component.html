@@ -1,0 +1,30 @@
+<sui-modal *ngIf="profileData" class="custom-sui-modal" [isClosable]="true" [size]="'large'" (dismissed)="modal.deny(); redirect()" #modal>
+  <div class="header">
+    <div class="ui grid">
+      <div class="eleven wide column">
+        <span class="ui header">{{resourceService?.frmelmnts?.lbl?.addSkills}}</span>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <form class="ui form">
+      <div class="ui form">
+        <div class=" field">
+          <div class="field">
+            <sui-multi-select [isSearchable]="true" name="skills" class="selection" [(ngModel)]="skill" [options]="profileData.skills" #multiSelect>
+              <sui-select-option *ngFor="let option of multiSelect.filteredOptions" [value]="option"> </sui-select-option>
+            </sui-multi-select>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="actions margin-top-40">
+    <button class="ui cancel primary basic button left floated" (click)="redirect(); modal.deny()">
+      {{resourceService?.frmelmnts?.btn?.cancel}}
+    </button>
+    <button class="ui approve primary button" (click)="addSkill(skill); modal.deny()">
+      {{resourceService?.frmelmnts?.btn?.finish}}
+    </button>
+  </div>
+</sui-modal>
