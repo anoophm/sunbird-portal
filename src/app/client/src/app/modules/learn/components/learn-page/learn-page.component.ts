@@ -1,4 +1,4 @@
-import { PageApiService, CoursesService, ICourses, ISort} from '@sunbird/core';
+import { PageApiService, CoursesService, ICourses, ISort, PlayerService} from '@sunbird/core';
 import { Component, OnInit } from '@angular/core';
 import { ResourceService, ServerResponse, ToasterService, ICaraouselData, IContents, IAction, ConfigService,
   UtilService } from '@sunbird/shared';
@@ -73,7 +73,7 @@ export class LearnPageComponent implements OnInit {
    * @param {CoursesService} courseService  Reference of courseService.
 	 */
   constructor(pageSectionService: PageApiService, coursesService: CoursesService,
-    toasterService: ToasterService, resourceService: ResourceService, router: Router,
+    toasterService: ToasterService, resourceService: ResourceService, router: Router,  private playerService: PlayerService,
      private activatedRoute: ActivatedRoute, configService: ConfigService, public utilService: UtilService) {
     this.pageSectionService = pageSectionService;
     this.coursesService = coursesService;
@@ -102,9 +102,9 @@ export class LearnPageComponent implements OnInit {
                    displayType: 'button',
                    text: 'Resume'},
                   onImage: { eventName: 'onImage' }
-              }
+              },
           };
-            const metaData = { metaData: ['identifier', 'mimeType', 'framework', 'contentType'] };
+            const metaData = { 'metaData': [ 'batchId', 'courseId'] };
             const dynamicFields = {'maxCount': ['leafNodesCount'], 'progress': ['progress']};
             const courses = this.utilService.getDataForCard(data.enrolledCourses,
               constantData, dynamicFields, metaData);
@@ -172,7 +172,7 @@ export class LearnPageComponent implements OnInit {
                       onImage: { eventName: 'onImage' }
                   }
               };
-                const metaData = { metaData: ['identifier', 'mimeType', 'framework', 'contentType'] };
+                const metaData = { metaData: ['identifier', 'framework', 'contentType', 'batchId', 'courseId'] };
                 const dynamicFields = {};
                 this.caraouselData[index].contents = this.utilService.getDataForCard(this.content,
                   constantData, dynamicFields, metaData);
@@ -237,5 +237,12 @@ export class LearnPageComponent implements OnInit {
         });
        this.populateEnrolledCourse();
       });
+  }
+  playContent(event) {
+    if (event.data.metaData.batchId) {
+      event.data.metaData.mimeType = 'application/vnd.ekstep.content-collection';
+      event.data.metaData.contentType = 'Course';
+    }
+    this.playerService.playContent(event.data.metaData);
   }
 }
