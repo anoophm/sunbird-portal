@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { PageApiService, CoursesService, ICourses, ISort, PlayerService } from '@sunbird/core';
+=======
+import { PageApiService, CoursesService, ICourses, ISort } from '@sunbird/core';
+>>>>>>> anoop/content-player
 import { Component, OnInit } from '@angular/core';
 import {
   ResourceService, ServerResponse, ToasterService, ICaraouselData, IContents, IAction, ConfigService,
