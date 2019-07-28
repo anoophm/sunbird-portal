@@ -190,6 +190,19 @@ export class UpdateCourseBatchComponent implements OnInit, OnDestroy, AfterViewI
       (userDetails, courseDetails, batchDetails) => ({ userDetails, courseDetails, batchDetails })
     );
   }
+
+  private isSubmitBtnDisable(batchForm): boolean {
+    const batchFormControls = ['name', 'description', 'enrollmentType', 'mentors', 'startDate', 'endDate', 'users'];
+    for (let i = 0; i < batchFormControls.length; i++) {
+      if (batchForm.controls[batchFormControls[i]].status !== 'VALID') {
+        return true;
+      }
+    }
+    if (batchForm.controls['enrollmentEndDate'].status !== 'VALID' && batchForm.controls['enrollmentEndDate'].pristine) {
+      return false;
+    }
+    return true;
+  }
   /**
   * initializes form fields and apply field level validation
   */
@@ -212,11 +225,23 @@ export class UpdateCourseBatchComponent implements OnInit, OnDestroy, AfterViewI
       users: new FormControl(),
       enrollmentEndDate: new FormControl(enrollmentEndDate)
     });
+
+    this.batchUpdateForm.get('startDate').valueChanges.subscribe(value => {
+      const startDate = moment(value);
+      if (startDate.isValid()) {
+        if (!moment(startDate).isBefore(moment(this.pickerMinDate).format('YYYY-MM-DD'))) {
+          this.pickerMinDateForEnrollmentEndDate = new Date(new Date(startDate).setHours(0, 0, 0, 0));
+        } else {
+          this.pickerMinDateForEnrollmentEndDate = this.pickerMinDate;
+        }
+      }
+    });
+
     this.batchUpdateForm.valueChanges.subscribe(val => {
       if (this.batchUpdateForm.status === 'VALID') {
         this.disableSubmitBtn = false;
       } else {
-        this.disableSubmitBtn = true;
+        this.disableSubmitBtn = this.isSubmitBtnDisable(this.batchUpdateForm);
       }
     });
     this.disableSubmitBtn = true;
