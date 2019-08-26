@@ -1,6 +1,6 @@
 <div class="graph-filters">
   <form [formGroup]="filtersFormGroup" class="ui form">
-    <div class="d-flex flex-w-wrap reset-filter-section">
+    <div class="d-flex flex-w-wrap reset-filter-section" *ngIf="showFilters">
       <div class="d-flex flex-ai-center">{{resourceService?.frmelmnts?.lbl?.graphStat }}: <sui-checkbox
           class="toggle ml-8" appTelemetryInteract [telemetryInteractObject]="telemetryInteractObject"
           [telemetryInteractEdata]="setTelemetryInteractEdata('graph-statistics')"
@@ -87,5 +87,5 @@
     </div>
   </div>
   <canvas baseChart [datasets]="datasets" [labels]="chartLabels" [options]="chartOptions" [chartType]="chartType"
-    [legend]="legend"></canvas>
+    [legend]="legend" [colors]="chartColors"></canvas>
 </div>

@@ -12,6 +12,7 @@ let envVariables = {
   CONTENT_PROXY_URL: env.sunbird_content_proxy_url || 'https://staging.open-sunbird.org',
   PORTAL_REALM: env.sunbird_portal_realm || 'sunbird',
   PORTAL_AUTH_SERVER_URL: env.sunbird_portal_auth_server_url || 'https://staging.open-sunbird.org/auth',
+  PORTAL_MERGE_AUTH_SERVER_URL: env.sunbird_portal_merge_auth_server_url || 'https://merge.staging.open-sunbird.org/auth',
   PORTAL_AUTH_SERVER_CLIENT: env.sunbird_portal_auth_server_client || 'portal',
   APPID: process.env.sunbird_environment + '.' + process.env.sunbird_instance + '.portal',
   DEFAULT_CHANNEL: env.sunbird_default_channel,
@@ -91,7 +92,8 @@ let envVariables = {
   },
   KEYCLOAK_ANDROID_CLIENT: {
     clientId: env.sunbird_android_keycloak_client_id || 'android',
-  }
+  },
+  LOG_FINGERPRINT_DETAILS: env.sunbird_log_fingerprint_details || 'true'
 }
 
 envVariables.PORTAL_CASSANDRA_URLS = (env.sunbird_cassandra_urls && env.sunbird_cassandra_urls !== '')
