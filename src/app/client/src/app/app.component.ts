@@ -10,8 +10,8 @@ import { UserService, PermissionService, CoursesService, TenantService, OrgDetai
   SessionExpiryInterceptor } from '@sunbird/core';
 import * as _ from 'lodash-es';
 import { ProfileService } from '@sunbird/profile';
-import { Observable, of, throwError, combineLatest } from 'rxjs';
-import { first, filter, mergeMap, tap, map } from 'rxjs/operators';
+import { Observable, of, throwError, combineLatest, BehaviorSubject } from 'rxjs';
+import { first, filter, mergeMap, tap, map, skipWhile, startWith } from 'rxjs/operators';
 import { CacheService } from 'ng2-cache-service';
 import { DOCUMENT } from '@angular/platform-browser';
 import { ShepherdService } from 'angular-shepherd';
@@ -63,6 +63,10 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
    * 2. user profile rootOrg hashtag for logged in
    */
   private channel: string;
+  private _routeData$ = new BehaviorSubject(undefined);
+  public readonly routeData$ = this._routeData$.asObservable()
+  .pipe(skipWhile(data => data === undefined || data === null));
+
   /**
    * constructor
    */
@@ -78,6 +82,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   shepherdData: Array<any>;
   private fingerprintInfo: any;
   hideHeaderNFooter = true;
+  queryParams: any;
+  telemetryContextData: any ;
   constructor(private cacheService: CacheService, private browserCacheTtlService: BrowserCacheTtlService,
     public userService: UserService, private navigationHelperService: NavigationHelperService,
     private permissionService: PermissionService, public resourceService: ResourceService,
@@ -102,15 +108,27 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     window.location.reload();
   }
   handleHeaderNFooter() {
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(data => {
+    this.router.events
+    .pipe(
+      filter(event => event instanceof NavigationEnd),
+      tap((event: NavigationEnd) => this._routeData$.next(event))
+      ).subscribe(data => {
       this.hideHeaderNFooter = _.get(this.activatedRoute, 'snapshot.firstChild.firstChild.data.hideHeaderNFooter') ||
         _.get(this.activatedRoute, 'snapshot.firstChild.firstChild.firstChild.data.hideHeaderNFooter');
     });
   }
   ngOnInit() {
+    const queryParams$ = this.activatedRoute.queryParams.pipe(
+      filter( queryParams => queryParams && queryParams.clientId === 'android' && queryParams.context),
+      tap(queryParams => {
+        this.telemetryContextData = JSON.parse(decodeURIComponent(queryParams.context));
+      }),
+      startWith(null)
+    );
     this.handleHeaderNFooter();
     this.resourceService.initialize();
-    combineLatest(this.setSlug(), this.setDeviceId()).pipe(
+    combineLatest(queryParams$, this.setSlug(), this.setDeviceId())
+    .pipe(
       mergeMap(data => {
         this.navigationHelperService.initialize();
         this.userService.initialize(this.userService.loggedIn);
@@ -149,17 +167,34 @@ setFingerPrintTelemetry() {
     }
 
     if (this.fingerprintInfo) {
-      const event = {
-        context: {
-          env : 'app'
-        },
-        edata : {
-          type : 'fingerprint_info',
-          data : JSON.stringify(this.fingerprintInfo)
-        }
-      };
-      this.telemetryService.exData(event);
+      this.logExData('fingerprint_info', this.fingerprintInfo );
     }
+
+    if (localStorage && localStorage.getItem('fpDetails_v1')) {
+      const fpDetails = JSON.parse(localStorage.getItem('fpDetails_v1'));
+      const fingerprintInfoV1 = {
+        deviceId: fpDetails.result,
+        components: fpDetails.components,
+        version: 'v1'
+      };
+      this.logExData('fingerprint_info', fingerprintInfoV1);
+      if (localStorage.getItem('fpDetails_v2')) {
+        localStorage.removeItem('fpDetails_v1');
+      }
+    }
+  }
+
+  logExData(type: string, data: object) {
+    const event = {
+      context: {
+        env : 'app'
+      },
+      edata : {
+        type : type,
+        data : JSON.stringify(data)
+      }
+    };
+    this.telemetryService.exData(event);
   }
 
   logCdnStatus() {
@@ -219,13 +254,17 @@ setFingerPrintTelemetry() {
    * fetch device id using fingerPrint2 library.
    */
   public setDeviceId(): Observable<string> {
-    return new Observable(observer => this.telemetryService.getDeviceId((deviceId, components, version) => {
-        this.fingerprintInfo = {deviceId, components, version};
-        (<HTMLInputElement>document.getElementById('deviceId')).value = deviceId;
-        this.deviceRegisterService.initialize();
-        observer.next(deviceId);
-        observer.complete();
-      }));
+      return new Observable(observer => this.telemetryService.getDeviceId((deviceId, components, version) => {
+          this.fingerprintInfo = {deviceId, components, version};
+          if (this.isOffline) {
+            deviceId = <HTMLInputElement>document.getElementById('deviceId') ?
+                        (<HTMLInputElement>document.getElementById('deviceId')).value : deviceId;
+          }
+          (<HTMLInputElement>document.getElementById('deviceId')).value = deviceId;
+          this.deviceRegisterService.initialize();
+          observer.next(deviceId);
+          observer.complete();
+        }));
   }
   /**
    * set slug from url only for Anonymous user.
@@ -296,29 +335,36 @@ setFingerPrintTelemetry() {
         }
       };
     } else {
-      return {
+      const anonymousTelemetryContextData = {
         userOrgDetails: {
-          userId: 'anonymous',
-          rootOrgId: this.orgDetails.rootOrgId,
-          organisationIds: [this.orgDetails.hashTagId]
+        userId: 'anonymous',
+        rootOrgId: this.orgDetails.rootOrgId,
+        organisationIds: [this.orgDetails.hashTagId]
+      },
+      config: {
+        pdata: {
+          id: this.userService.appId,
+          ver: version,
+          pid: this.configService.appConfig.TELEMETRY.PID
         },
-        config: {
-          pdata: {
-            id: this.userService.appId,
-            ver: version,
-            pid: this.configService.appConfig.TELEMETRY.PID
-          },
-          batchsize: 10,
-          endpoint: this.configService.urlConFig.URLS.TELEMETRY.SYNC,
-          apislug: this.configService.urlConFig.URLS.CONTENT_PREFIX,
-          host: '',
-          sid: this.userService.anonymousSid,
-          channel: this.orgDetails.hashTagId,
-          env: 'home',
-          enableValidation: environment.enableTelemetryValidation,
-          timeDiff: this.orgDetailsService.getServerTimeDiff
-        }
-      };
+        batchsize: 10,
+        endpoint: this.configService.urlConFig.URLS.TELEMETRY.SYNC,
+        apislug: this.configService.urlConFig.URLS.CONTENT_PREFIX,
+        host: '',
+        sid: this.userService.anonymousSid,
+        channel: this.orgDetails.hashTagId,
+        env: 'home',
+        enableValidation: environment.enableTelemetryValidation,
+        timeDiff: this.orgDetailsService.getServerTimeDiff
+      }
+    };
+    if (this.telemetryContextData) {
+      anonymousTelemetryContextData['config']['did'] = _.get(this.telemetryContextData, 'did');
+      anonymousTelemetryContextData['config']['pdata'] = _.get(this.telemetryContextData, 'pdata');
+      anonymousTelemetryContextData['config']['channel'] = _.get(this.telemetryContextData, 'channel');
+      anonymousTelemetryContextData['config']['sid'] = _.get(this.telemetryContextData, 'sid');
+    }
+      return anonymousTelemetryContextData;
     }
   }
   /**
