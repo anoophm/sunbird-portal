@@ -34,7 +34,7 @@
                 },
                 {
                     "id": "org.ekstep.metadata",
-                    "ver": "1.4",
+                    "ver": "1.5",
                     "type": "plugin"
                 },
                 {
@@ -90,7 +90,15 @@
                 "childrenTypes": [
                     "CourseUnit",
                     "Collection",
-                    "Resource"
+                    "Resource",
+                    "SelfAssess",
+                    "FocusSpot",
+                    "LearningOutcomeDefinition",
+                    "PracticeQuestionSet",
+                    "CuriosityQuestions",
+                    "MarkingSchemeRubric",
+                    "ExplanationResource",
+                    "ExperientialResource"
                 ],
                 "addType": "Editor",
                 "iconClass": "fa fa-folder-o"
@@ -107,6 +115,14 @@
             {
                 "type": "Resource",
                 "label": "Resource",
+                "isRoot": false,
+                "editable": false,
+                "childrenTypes": [],
+                "addType": "Browser",
+                "iconClass": "fa fa-file-o"
+            },{
+                "type": "SelfAssess",
+                "label": "SelfAssess",
                 "isRoot": false,
                 "editable": false,
                 "childrenTypes": [],
@@ -185,7 +201,14 @@
                 "editable": true,
                 "childrenTypes": [
                     "Collection",
-                    "Resource"
+                    "Resource",
+                    "FocusSpot",
+                    "LearningOutcomeDefinition",
+                    "PracticeQuestionSet",
+                    "CuriosityQuestions",
+                    "MarkingSchemeRubric",
+                    "ExplanationResource",
+                    "ExperientialResource"
                 ],
                 "addType": "Editor",
                 "iconClass": "fa fa-folder-o"
@@ -294,7 +317,14 @@
                 "childrenTypes": [
                     "LessonPlanUnit",
                     "Collection",
-                    "Resource"
+                    "Resource",
+                    "FocusSpot",
+                    "LearningOutcomeDefinition",
+                    "PracticeQuestionSet",
+                    "CuriosityQuestions",
+                    "MarkingSchemeRubric",
+                    "ExplanationResource",
+                    "ExperientialResource"
                 ],
                 "addType": "Editor",
                 "iconClass": "fa fa-folder-o"
@@ -403,7 +433,14 @@
                 "childrenTypes": [
                     "TextBookUnit",
                     "Collection",
-                    "Resource"
+                    "Resource",
+                    "FocusSpot",
+                    "LearningOutcomeDefinition",
+                    "PracticeQuestionSet",
+                    "CuriosityQuestions",
+                    "MarkingSchemeRubric",
+                    "ExplanationResource",
+                    "ExperientialResource"
                 ],
                 "addType": "Editor",
                 "iconClass": "fa fa-folder-o"
@@ -557,7 +594,7 @@
                 },
                 {
                     "id": "org.ekstep.metadata",
-                    "ver": "1.4",
+                    "ver": "1.5",
                     "type": "plugin"
                 },
                 {
@@ -621,7 +658,7 @@
                 },
                 {
                     "id": "org.ekstep.metadata",
-                    "ver": "1.4",
+                    "ver": "1.5",
                     "type": "plugin"
                 }
             ],

@@ -5,9 +5,9 @@ import {
   IStartEventInput, IImpressionEventInput, IExDataEventInput,
   IInteractEventInput, IShareEventInput, IErrorEventInput, IEndEventInput, ILogEventInput, ITelemetryContext, IFeedBackEventInput
 } from './../../interfaces/telemetry';
+import { environment } from '@sunbird/environment';
 
-
- export const TELEMETRY_PROVIDER = new InjectionToken('telemetryProvider');
+export const TELEMETRY_PROVIDER = new InjectionToken('telemetryProvider');
 /**
 * Service for telemetry v3 event methods
 */
@@ -48,10 +48,13 @@ export class TelemetryService {
    * @memberof TelemetryService
    */
 
+  sessionId;
 
   constructor() {
     // , { provide: TELEMETRY_PROVIDER, useValue: EkTelemetry }
     this.telemetryProvider = EkTelemetry;
+    this.sessionId = (<HTMLInputElement>document.getElementById('sessionId'))
+    ? (<HTMLInputElement>document.getElementById('sessionId')).value : undefined;
   }
 
   /**
@@ -61,6 +64,9 @@ export class TelemetryService {
    * @memberof TelemetryService
    */
   public initialize(context: ITelemetryContext) {
+    if (environment.isOffline && !(_.isEmpty(this.sessionId))) {
+      context.config.sid = this.sessionId;
+    }
     this.context = _.cloneDeep(context);
     this.telemetryProvider.initialize(this.context.config);
     this.isInitialized = true;
@@ -73,8 +79,8 @@ export class TelemetryService {
    * Telemetry data sync method
    * @memberof TelemetryService
    */
-  public syncEvents() {
-    this.telemetryProvider.syncEvents();
+  public syncEvents(async: Boolean = true) {
+    this.telemetryProvider.syncEvents(async);
     console.log('Telemetry data is Synced!');
   }
 
@@ -225,12 +231,12 @@ export class TelemetryService {
   private getEventObject(eventInput: any) {
     if (eventInput.object) {
       const eventObjectData: TelemetryObject = {
-      id: eventInput.object.id || '',
-      type: eventInput.object.type || '',
-      ver: eventInput.object.ver || '',
-      rollup: eventInput.object.rollup || {}
-    };
-    return eventObjectData;
+        id: eventInput.object.id || '',
+        type: eventInput.object.type || '',
+        ver: eventInput.object.ver || '',
+        rollup: eventInput.object.rollup || {}
+      };
+      return eventObjectData;
     } else { // telemetry.min.js will take last sent object is not sent.
       return {};
     }

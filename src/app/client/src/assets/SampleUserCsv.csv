@@ -1,1 +1,2 @@
-Name,Identifier,Ext_Org_ID,Ext_User_ID,Input Status,Roles
+Name,Email,Phone,Ext Org ID,Ext User ID,INPUT STATUS
+johnDoe,johndoe@test.com,9881231231,123,extuserid,ACTIVE

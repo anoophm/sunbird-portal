@@ -60,7 +60,9 @@ class="sb-modal custom-sui-modal" appBodyScroll (dismissed)="redirect();modal.de
     <div *ngFor = "let er of errors">
       <span> {{er}}</span>
     </div>
-    <div id="errorDiv"></div>
+    <div id="errorDiv" class="errorDiv">
+      <textarea id="errorTextArea" class="errorTextArea"></textarea>
+    </div>
   </div>
   <div>
     <span> {{resourceService?.frmelmnts?.lbl?.errorMsg }}</span>
@@ -69,7 +71,7 @@ class="sb-modal custom-sui-modal" appBodyScroll (dismissed)="redirect();modal.de
 </div>
 <div class="sb-modal-actions">
   <button appTelemetryInteract [telemetryInteractObject]="telemetryInteractObject"
-  [telemetryInteractEdata]="userUploadInteractEdata" [disabled]="processId"
+  [telemetryInteractEdata]="userErrorInteractEdata" [disabled]="processId"
   class="sb-btn sb-btn-normal sb-btn-primary" (click)="copyToClipboard()">
   {{resourceService?.frmelmnts?.btn?.copytoclipboard}}
   </button>

@@ -100,6 +100,7 @@ activateUpload = false;
 	*/
   telemetryImpression: IImpressionEventInput;
   userUploadInteractEdata: IInteractEventEdata;
+  userErrorInteractEdata: IInteractEventEdata;
   downloadCSVInteractEdata: IInteractEventEdata;
   telemetryInteractObject: IInteractEventObject;
   public unsubscribe$ = new Subject<void>();
@@ -227,14 +228,11 @@ activateUpload = false;
     this.bulkUploadErrorMessage = '';
   }
   copyToClipboard() {
-    const element = document.createElement('textarea');
-    document.getElementById('errorDiv').appendChild(element);
+    const element = (<HTMLInputElement>document.getElementById('errorTextArea'));
+    element.value = '';
     element.value = this.error;
     element.select();
     document.execCommand('copy');
-    setTimeout(() => {
-      document.getElementById('errorDiv').removeChild(element);
-    }, 100);
   }
   ngOnDestroy() {
     document.body.classList.remove('no-scroll'); // This is a workaround we need to remove it when library add support to remove body scroll
@@ -259,6 +257,11 @@ activateUpload = false;
       id: this.userService.userid,
       type: 'User',
       ver: '1.0'
+    };
+    this.userErrorInteractEdata = {
+      id: 'error-upload-user',
+      type: 'click',
+      pageid: 'profile-read'
     };
   }
 }

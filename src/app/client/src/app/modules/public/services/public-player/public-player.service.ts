@@ -23,12 +23,17 @@ export class PublicPlayerService {
   */
   collectionData: ContentData;
   previewCdnUrl: string;
+  sessionId;
+  private _libraryFilters: any = {};
+
   constructor(public userService: UserService, private orgDetailsService: OrgDetailsService,
     public configService: ConfigService, public router: Router,
     public publicDataService: PublicDataService, public navigationHelperService: NavigationHelperService,
     public resourceService: ResourceService) {
       this.previewCdnUrl = (<HTMLInputElement>document.getElementById('previewCdnUrl'))
       ? (<HTMLInputElement>document.getElementById('previewCdnUrl')).value : undefined;
+      this.sessionId = (<HTMLInputElement>document.getElementById('sessionId'))
+      ? (<HTMLInputElement>document.getElementById('sessionId')).value : undefined;
   }
 
   /**
@@ -77,7 +82,7 @@ export class PublicPlayerService {
   getConfig(contentDetails: ContentDetails, option: any = {}): PlayerConfig {
     const configuration: any = _.cloneDeep(this.configService.appConfig.PLAYER_CONFIG.playerConfig);
     configuration.context.contentId = contentDetails.contentId;
-    configuration.context.sid = this.userService.anonymousSid;
+    configuration.context.sid = (environment.isOffline && !_.isEmpty(this.sessionId)) ? this.sessionId : this.userService.anonymousSid;
     configuration.context.uid = 'anonymous';
     configuration.context.timeDiff = this.orgDetailsService.getServerTimeDiff;
     const buildNumber = (<HTMLInputElement>document.getElementById('buildNumber'));
@@ -169,13 +174,36 @@ export class PublicPlayerService {
   }
   updateDownloadStatus (downloadListdata, content) {
     const identifier = !_.isEmpty(content.metaData) ? _.get(content, 'metaData.identifier') : _.get(content, 'identifier');
-        // If download is completed card should show added to library
-        if (_.find(downloadListdata.result.response.downloads.completed, { contentId: identifier })) {
-          content['downloadStatus'] = this.resourceService.messages.stmsg.m0139;
-        }
-        // // If download failed, card should show again add to library
-        if (_.find(downloadListdata.result.response.downloads.failed, { contentId: identifier })) {
-          content['downloadStatus'] = this.resourceService.messages.stmsg.m0138;
-        }
+    const inprogress = _.find(_.get(downloadListdata, 'result.response.contents'), (o) => {
+      return o.status === 'inProgress';
+    });
+    const submitted = _.find(_.get(downloadListdata, 'result.response.contents'), (o) => {
+      return o.status === 'inQueue';
+    });
+    const failed = _.find(_.get(downloadListdata, 'result.response.contents'), (o) => {
+      return o.status === 'failed';
+    });
+    const completed = _.find(_.get(downloadListdata, 'result.response.contents'), (o) => {
+      return o.status === 'completed';
+    });
+    const compare = { resourceId: identifier };
+    if (_.find([inprogress], compare) || _.find([submitted], compare)) {
+      content['downloadStatus'] = this.resourceService.messages.stmsg.m0140;
+    } else if (_.find([completed], compare)) {
+      content['downloadStatus'] = this.resourceService.messages.stmsg.m0139;
+    } else if (_.find([failed], compare)) {
+      content['downloadStatus'] = this.resourceService.messages.stmsg.m0138;
+    }
+    return content;
   }
+
+
+    get libraryFilters() {
+        return this._libraryFilters;
+    }
+
+    set libraryFilters(filters) {
+        this._libraryFilters = filters;
+    }
+
 }

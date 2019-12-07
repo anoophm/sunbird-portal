@@ -315,12 +315,14 @@
   },
   "PublicPlayer": {
     "contentApiQueryParams": {
-      "orgdetails": "orgName,email"
+      "orgdetails": "orgName,email",
+      "licenseDetails": "name,description,url"
     }
   },
   "ContentPlayer": {
     "contentApiQueryParams": {
-      "orgdetails": "orgName,email"
+      "orgdetails": "orgName,email",
+      "licenseDetails": "name,description,url"
     }
   },
   "ExplorePage": {
@@ -561,6 +563,12 @@
       },
       "config": {
         "showEndPage": false,
+        "endPage": [
+          {
+          "template": "assessment",
+          "contentType": ["SelfAssess"]
+          }
+        ],
         "showStartPage": true,
         "host": "",
         "overlay": {
@@ -628,7 +636,14 @@
       "TextBook",
       "Course",
       "LessonPlan",
-      "Resource"
+      "Resource",
+      "FocusSpot",
+      "LearningOutcomeDefinition",
+      "PracticeQuestionSet",
+      "CuriosityQuestions",
+      "MarkingSchemeRubric",
+      "ExplanationResource",
+      "ExperientialResource"
     ],
     "mimeType": [
       "application/vnd.ekstep.ecml-archive",
@@ -1076,7 +1091,8 @@
     "explore-course": "explore-course",
     "framework-code": "framework-code",
     "courses": "courses",
-    "organization": "organization"
+    "organization": "organization",
+    "externalIdVerification": "externalIdVerification"
   },
   "cacheServiceConfig": {
     "setTimeInMinutes": 10,
