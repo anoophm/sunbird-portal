@@ -26,10 +26,7 @@
         },
         "telemetryObjectType": "home"
       },
-      "metaData": [
-        "batchId",
-        "courseId"
-      ],
+      "metaData": ["batchId", "courseId"],
       "maxCount": "leafNodesCount",
       "progress": "progress"
     }
@@ -69,18 +66,10 @@
           }
         }
       },
-      "metaData": [
-        "batchId",
-        "courseId"
-      ]
+      "metaData": ["batchId", "courseId"]
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     },
     "dynamicFields": {
       "ribbon.right.name": "resourceType",
@@ -90,12 +79,14 @@
   },
   "CourseConsumption": {
     "contentApiQueryParams": {
-      "orgdetails": "orgName,email"
+      "orgdetails": "orgName,email",
+      "licenseDetails": "name,description,url"
     }
   },
   "Course": {
     "contentApiQueryParams": {
-      "orgdetails": "orgName,email"
+      "orgdetails": "orgName,email",
+      "licenseDetails": "name,description,url"
     },
     "otherCourse": {
       "constantData": {
@@ -111,12 +102,7 @@
         }
       },
       "metaData": {
-        "metaData": [
-          "identifier",
-          "mimeType",
-          "framework",
-          "contentType"
-        ]
+        "metaData": ["identifier", "mimeType", "framework", "contentType"]
       },
       "dynamicFields": {
         "ribbon.right.name": "resourceType"
@@ -136,10 +122,7 @@
           }
         }
       },
-      "metaData": [
-        "batchId",
-        "courseId"
-      ],
+      "metaData": ["batchId", "courseId"],
       "maxCount": "leafNodesCount",
       "progress": "progress"
     }
@@ -193,23 +176,105 @@
           }
         },
         {
-          "breakpoint": 750,
+          "breakpoint": 768,
           "settings": {
             "slidesToShow": 2,
-            "slidesToScroll": 2
+            "slidesToScroll": 1
           }
         },
         {
           "breakpoint": 660,
           "settings": {
-            "slidesToShow": 1.75,
+            "slidesToShow": 2,
             "slidesToScroll": 1
           }
         },
         {
           "breakpoint": 530,
           "settings": {
-            "slidesToShow": 1.25,
+            "slidesToShow": 1.5,
+            "slidesToScroll": 1
+          }
+        },
+        {
+          "breakpoint": 450,
+          "settings": {
+            "slidesToShow": 1,
+            "slidesToScroll": 1
+          }
+        }
+      ],
+      "infinite": false,
+      "rtl": false
+    }
+  },
+  "AllDownloadsSection": {
+    "slickSize": 10,
+    "slideConfig": {
+      "slidesToShow": 4,
+      "slidesToScroll": 4,
+      "respondTo": "slider",
+      "responsive": [
+        {
+          "breakpoint": 2800,
+          "settings": {
+            "slidesToShow": 4,
+            "slidesToScroll": 4
+          }
+        },
+        {
+          "breakpoint": 2200,
+          "settings": {
+            "slidesToShow": 4,
+            "slidesToScroll": 4
+          }
+        },
+        {
+          "breakpoint": 2000,
+          "settings": {
+            "slidesToShow": 3.01,
+            "slidesToScroll": 3.01
+          }
+        },
+        {
+          "breakpoint": 1600,
+          "settings": {
+            "slidesToShow": 3,
+            "slidesToScroll": 3
+          }
+        },
+        {
+          "breakpoint": 1200,
+          "settings": {
+            "slidesToShow": 2.5,
+            "slidesToScroll": 2.5
+          }
+        },
+        {
+          "breakpoint": 900,
+          "settings": {
+            "slidesToShow": 2.5,
+            "slidesToScroll": 2
+          }
+        },
+        {
+          "breakpoint": 768,
+          "settings": {
+            "slidesToShow": 2,
+            "slidesToScroll": 1
+          }
+        },
+        {
+          "breakpoint": 660,
+          "settings": {
+            "slidesToShow": 2,
+            "slidesToScroll": 1
+          }
+        },
+        {
+          "breakpoint": 530,
+          "settings": {
+            "slidesToShow": 1.5,
             "slidesToScroll": 1
           }
         },
@@ -245,12 +310,7 @@
         }
       },
       "metaData": {
-        "metaData": [
-          "identifier",
-          "mimeType",
-          "framework",
-          "contentType"
-        ]
+        "metaData": ["identifier", "mimeType", "framework", "contentType"]
       }
     },
     "enrolledCourses": {
@@ -269,10 +329,7 @@
         }
       },
       "metaData": {
-        "metaData": [
-          "batchId",
-          "courseId"
-        ]
+        "metaData": ["batchId", "courseId"]
       },
       "dynamicFields": {
         "maxCount": "leafNodesCount",
@@ -301,12 +358,7 @@
       }
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     },
     "dynamicFields": {
       "ribbon.right.name": "resourceType",
@@ -346,12 +398,7 @@
       }
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     },
     "dynamicFields": {
       "ribbon.right.name": "resourceType",
@@ -376,12 +423,7 @@
       }
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     },
     "dynamicFields": {
       "ribbon.left.image": "badgeAssertions[0].badgeClassImage"
@@ -413,7 +455,7 @@
       "telemetryInteractEdata": {
         "id": "dial-code-view-card",
         "type": "click",
-        "pageid": "dial-code"
+        "pageid": "get-dial"
       },
       "telemetryObjectType": "public"
     },
@@ -423,7 +465,8 @@
         "mimeType",
         "framework",
         "contentType",
-        "l1Parent"
+        "l1Parent",
+        "childTextbookUnit"
       ]
     },
     "dynamicFields": {
@@ -443,12 +486,7 @@
       }
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     },
     "dynamicFields": {
       "ribbon.right.name": "resourceType",
@@ -484,12 +522,7 @@
       }
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     }
   },
   "LibrarySearch": {
@@ -512,12 +545,7 @@
       }
     },
     "metaData": {
-      "metaData": [
-        "identifier",
-        "mimeType",
-        "framework",
-        "contentType"
-      ]
+      "metaData": ["identifier", "mimeType", "framework", "contentType"]
     },
     "dynamicFields": {
       "ribbon.right.name": "resourceType",
@@ -565,8 +593,8 @@
         "showEndPage": false,
         "endPage": [
           {
-          "template": "assessment",
-          "contentType": ["SelfAssess"]
+            "template": "assessment",
+            "contentType": ["SelfAssess"]
           }
         ],
         "showStartPage": true,
@@ -581,9 +609,7 @@
           "webLink": ""
         },
         "apislug": "/action",
-        "repos": [
-          "/sunbird-plugins/renderer"
-        ],
+        "repos": ["/sunbird-plugins/renderer"],
         "plugins": [
           {
             "id": "org.sunbird.iframeEvent",
@@ -936,11 +962,7 @@
     "FILEUPLOAD": {
       "MAXFILESIZETOUPLOAD": 1024000,
       "FILEEXTENSIONTOUPLOAD": "application/pdf, application/jpg, application/png",
-      "ALLOWEDFILEEXTENSION": [
-        "png",
-        "pdf",
-        "jpg"
-      ]
+      "ALLOWEDFILEEXTENSION": ["png", "pdf", "jpg"]
     },
     "GEOCONFIG": {
       "geo": {

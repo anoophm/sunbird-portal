@@ -8,7 +8,7 @@ import {
 import { Component, HostListener, OnInit, ViewChild, Inject, OnDestroy, AfterViewInit } from '@angular/core';
 import {
   UserService, PermissionService, CoursesService, TenantService, OrgDetailsService, DeviceRegisterService,
-  SessionExpiryInterceptor, FormService
+  SessionExpiryInterceptor, FormService, ProgramsService
 } from '@sunbird/core';
 import * as _ from 'lodash-es';
 import { ProfileService } from '@sunbird/profile';
@@ -99,7 +99,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private telemetryService: TelemetryService, public router: Router, private configService: ConfigService,
     private orgDetailsService: OrgDetailsService, private activatedRoute: ActivatedRoute,
     private profileService: ProfileService, private toasterService: ToasterService, public utilService: UtilService,
-    public formService: FormService,
+    public formService: FormService, private programsService: ProgramsService,
     @Inject(DOCUMENT) private _document: any, public sessionExpiryInterceptor: SessionExpiryInterceptor,
     private shepherdService: ShepherdService) {
     this.instance = (<HTMLInputElement>document.getElementById('instance'))
@@ -145,6 +145,7 @@ export class AppComponent implements OnInit, OnDestroy {
           if (this.userService.loggedIn) {
             this.permissionService.initialize();
             this.courseService.initialize();
+            this.programsService.initialize();
             this.userService.startSession();
             return this.setUserDetails();
           } else {
@@ -169,7 +170,16 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  isLocationStatusRequired() {
+    const url = this.router.url;
+    return !!(_.includes(url, 'signup') || _.includes(url, 'recover') || _.includes(url, 'sign-in'));
+  }
+
   checkLocationStatus() {
+    // should not show location popup for sign up and recover route
+    if (this.isLocationStatusRequired()) {
+      return;
+    }
     this.usersProfile = this.userService.userProfile;
     const deviceRegister = this.deviceRegisterService.getDeviceProfile();
     const custodianOrgDetails = this.orgDetailsService.getCustodianOrgDetails();
@@ -237,7 +247,7 @@ export class AppComponent implements OnInit, OnDestroy {
   logExData(type: string, data: object) {
     const event = {
       context: {
-        env: 'app'
+        env: 'portal'
       },
       edata: {
         type: type,

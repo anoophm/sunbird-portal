@@ -109,4 +109,51 @@ export class ContentManagerService {
     return this.publicDataService.post(options);
   }
 
+  retryImportContent(importId) {
+    const options = {
+      url: `${this.configService.urlConFig.URLS.OFFLINE.RETRY_IMPORT}/${importId}`,
+      data: {}
+    };
+    return this.publicDataService.post(options);
+  }
+
+  resumeDownloadContent(downloadId) {
+    const options = {
+      url: `${this.configService.urlConFig.URLS.OFFLINE.RESUME_DOWNLOAD}/${downloadId}`,
+      data: {}
+    };
+    return this.publicDataService.post(options);
+  }
+
+  cancelDownloadContent(downloadId) {
+    const options = {
+      url: `${this.configService.urlConFig.URLS.OFFLINE.CANCEL_DOWNLOAD}/${downloadId}`,
+      data: {}
+    };
+    return this.publicDataService.post(options);
+  }
+
+  pauseDownloadContent(downloadId) {
+    const options = {
+      url: `${this.configService.urlConFig.URLS.OFFLINE.PAUSE_DOWNLOAD}/${downloadId}`,
+      data: {}
+    };
+    return this.publicDataService.post(options);
+  }
+
+  retryDownloadContent(downloadId) {
+    const options = {
+      url: `${this.configService.urlConFig.URLS.OFFLINE.RETRY_DOWNLOAD}/${downloadId}`,
+      data: {}
+    };
+    return this.publicDataService.post(options);
+  }
+  deleteContent (request) {
+    const options = {
+      url: `${this.configService.urlConFig.URLS.OFFLINE.DELETE_CONTENT}`,
+      data: request
+    };
+    return this.publicDataService.post(options);
+  }
+
 }

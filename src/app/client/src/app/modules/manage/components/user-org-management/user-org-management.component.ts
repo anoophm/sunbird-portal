@@ -68,6 +68,7 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit {
   public userViewInteractEdata: IInteractEventEdata;
   public userDownloadInteractEdata: IInteractEventEdata;
   public teacherDetailsInteractEdata: IInteractEventEdata;
+  public selectFileInteractEdata: IInteractEventEdata;
 
   constructor(activatedRoute: ActivatedRoute, public navigationhelperService: NavigationHelperService,
     userService: UserService, manageService: ManageService, resourceService: ResourceService) {
@@ -149,6 +150,11 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit {
         type: 'download',
         pageid: this.activatedRoute.snapshot.data.telemetry.pageid
       };
+      this.selectFileInteractEdata = {
+        id: 'upload-user',
+        type: 'click',
+        pageid: this.activatedRoute.snapshot.data.telemetry.pageid
+      };
     });
   }
 
@@ -196,7 +202,7 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit {
           'districts': result['districts'] ? result['districts'] : 0,
           'blocks': result['blocks'] ? result['blocks'] : 0,
           'schools': result['schools'] ? result['schools'] : 0,
-          'teachers': result['teachers'] ? result['teachers'] : 0
+          'teachers': result['registered'] ? result['registered'] : 0
         };
       },
       error => {
@@ -247,6 +253,7 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit {
                 }],
             'data': this.geoTabledata,
             'searching': false,
+            'lengthChange': false
         });
     }, 100);
 }
@@ -287,6 +294,7 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit {
                 }],
             'data': this.userTabledata,
             'searching': false,
+            'lengthChange': false
         });
     }, 100);
 }
