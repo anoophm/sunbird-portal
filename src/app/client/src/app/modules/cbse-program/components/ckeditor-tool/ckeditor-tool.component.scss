@@ -47,7 +47,7 @@
 .insert-image-btn {
   position: absolute;
   z-index: 1;
-  left: 376px;
+  left: 315px;
   background-color: transparent;
   padding: 12px 14px !important;
   margin-left: 6px;
@@ -186,7 +186,15 @@
 
 .upload-input-button {
   input[type="file"] {
-    display: none;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    font-size: 118px;
+    margin: 0px;
+    padding: 0px;
+    cursor: pointer;
+    opacity: 0;
+    height: 100%;
 }
 }
 
