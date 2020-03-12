@@ -1,14 +1,13 @@
 import { Component, OnInit, Output, Input, EventEmitter, OnChanges, AfterViewInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { McqForm } from './../../class/McqForm';
-import { ConfigService, IUserData, IUserProfile, ToasterService, NavigationHelperService } from '@sunbird/shared';
+import { ConfigService, IUserProfile, ToasterService, NavigationHelperService } from '@sunbird/shared';
 import { UserService, ActionService } from '@sunbird/core';
 import { TelemetryService } from '@sunbird/telemetry';
 import * as _ from 'lodash-es';
 import { UUID } from 'angular2-uuid';
-import { HttpClientModule } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, Observable, of, throwError } from 'rxjs';
+import { forkJoin, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CbseProgramService } from '../../services';
 import { Validators, FormGroup, FormArray, FormBuilder, NgForm } from '@angular/forms';
@@ -24,10 +23,9 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() sessionContext: any;
   @Input() telemetryEventsInput: any;
   @Input() questionMetaData: any;
+  @Input() role: any;
   @Output() questionStatus = new EventEmitter<any>();
   @Output() questionFormChangeStatus = new EventEmitter<any>();
-  @Input() questionSelectionStatus: any;
-  @Input() role: any;
   @ViewChild('author_names') authorName;
   @ViewChild('reuestChangeForm') ReuestChangeForm: NgForm;
   public userProfile: IUserProfile;
@@ -42,6 +40,7 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
   public textFields: Array<any>;
   public selectionFields: Array<any>;
   public multiSelectionFields: Array<any>;
+  editorConfig: any;
   showTemplatePopup = false;
   showForm = false;
   templateDetails: any = {};
@@ -66,6 +65,7 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
   selectedSolutionType: string;
   selectedSolutionTypeIndex: string;
   showSolutionDropDown = true;
+  showSolution = false;
   videoSolutionName: string;
   videoSolutionData: any;
   solutionUUID: string;
@@ -105,10 +105,11 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
         this.selectedSolutionType = this.questionMetaData.data.editorState.solutions[0].type;
         this.solutionUUID = this.questionMetaData.data.editorState.solutions[0].id;
         this.showSolutionDropDown = false;
+        this.showSolution = true;
 
         if (this.selectedSolutionType === 'video') {
           const index = _.findIndex(this.questionMetaData.data.media, (o) => {
-             return o.type === 'video';
+            return o.type === 'video' && o.id === this.questionMetaData.data.editorState.solutions[0].value;
           });
           this.videoSolutionName = this.questionMetaData.data.media[index].name;
           this.videoThumbnail = this.questionMetaData.data.media[index].thumbnail;
@@ -126,6 +127,8 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnInit() {
+    const config: any = _.get(this.sessionContext.practiceSetConfig, 'config');
+    this.editorConfig = { config };
     this.userName = this.setUserName();
     this.solutionUUID = UUID.UUID();
     this.isReadOnlyMode = this.sessionContext.isReadOnlyMode;
@@ -154,7 +157,6 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
         }
       };
      });
-
   }
 
   ngOnChanges() {
@@ -193,20 +195,32 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
     return userName;
   }
   videoDataOutput(event) {
+    if (event) {
+      this.videoSolutionData = event;
+      this.videoSolutionName = event.name;
+      this.solutionValue = event.identifier;
+      this.videoThumbnail = event.thumbnail;
+      const videoMedia: any = {};
+      videoMedia.id = event.identifier;
+      videoMedia.src = event.src;
+      videoMedia.type = 'video';
+      videoMedia.assetId = event.identifier;
+      videoMedia.name = event.name;
+      videoMedia.thumbnail = this.videoThumbnail;
+      if (videoMedia.thumbnail) {
+        const thumbnailMedia: any = {};
+        thumbnailMedia.src = this.videoThumbnail;
+        thumbnailMedia.type = 'image';
+        thumbnailMedia.id = `video_${event.identifier}`;
+        this.mediaArr.push(thumbnailMedia);
+      }
+      this.mediaArr.push(videoMedia);
+      this.showSolutionDropDown = false;
+      this.showSolution = true;
+    } else {
+      this.deleteSolution();
+    }
     this.videoShow = false;
-    this.videoSolutionData = event;
-    this.videoSolutionName = event.name;
-    this.solutionValue = event.identifier;
-    this.videoThumbnail = event.thumbnail;
-    const videoMedia: any = {};
-    videoMedia.id = event.identifier;
-    videoMedia.src = event.downloadUrl;
-    videoMedia.type = 'video';
-    videoMedia.assetId = event.identifier;
-    videoMedia.name = event.name;
-    videoMedia.thumbnail = this.videoThumbnail;
-    this.mediaArr.push(videoMedia);
-    this.showSolutionDropDown = false;
   }
   selectSolutionType(data: any) {
     const index = _.findIndex(this.solutionTypes, (sol: any) => {
@@ -221,9 +235,15 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
   deleteSolution() {
+    if (this.selectedSolutionType === 'video') {
+      this.mediaArr = _.filter(this.mediaArr, (item: any) => item.id !== this.solutionValue);
+      console.log(this.mediaArr);
+    }
     this.showSolutionDropDown = true;
     this.selectedSolutionType = '';
     this.solutionValue = '';
+    this.videoThumbnail = '';
+    this.showSolution = false;
   }
 
   handleReviewrStatus(event) {
@@ -288,33 +308,33 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
       return of(body);
     }
   }
-  getConvertedSVG(body) {
-    const getLatex = (encodedMath) => {
-      return this.http.get('https://www.wiris.net/demo/editor/render?mml=' + encodedMath + '&backgroundColor=%23fff&format=svg', {
-        responseType: 'text'
-      });
-    };
-    let latexBody;
-    const isMathML = body.match(/((<math("[^"]*"|[^\/">])*)(.*?)<\/math>)/gi);
-    if (isMathML && isMathML.length > 0) {
-      latexBody = isMathML.map(math => {
-        const encodedMath = encodeURIComponent(math);
-        return getLatex(encodedMath);
-      });
-    }
-    if (latexBody) {
-      return forkJoin(latexBody).pipe(
-        map((res) => {
-          _.forEach(res, (latex, i) => {
-            body = latex.includes('Error') ? body : body.replace(isMathML[i], latex);
-          });
-          return body;
-        })
-      );
-    } else {
-      return of(body);
-    }
-  }
+  // getConvertedSVG(body) {
+  //   const getLatex = (encodedMath) => {
+  //     return this.http.get('https://www.wiris.net/demo/editor/render?mml=' + encodedMath + '&backgroundColor=%23fff&format=svg', {
+  //       responseType: 'text'
+  //     });
+  //   };
+  //   let latexBody;
+  //   const isMathML = body.match(/((<math("[^"]*"|[^\/">])*)(.*?)<\/math>)/gi);
+  //   if (isMathML && isMathML.length > 0) {
+  //     latexBody = isMathML.map(math => {
+  //       const encodedMath = encodeURIComponent(math);
+  //       return getLatex(encodedMath);
+  //     });
+  //   }
+  //   if (latexBody) {
+  //     return forkJoin(latexBody).pipe(
+  //       map((res) => {
+  //         _.forEach(res, (latex, i) => {
+  //           body = latex.includes('Error') ? body : body.replace(isMathML[i], latex);
+  //         });
+  //         return body;
+  //       })
+  //     );
+  //   } else {
+  //     return of(body);
+  //   }
+  // }
 
   /**
    * @param optionalParams  {Array of Objects }  -Key and Value to add in metadata
@@ -328,11 +348,13 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
         });
         const questionData = this.getHtml(this.body, this.optionBody);
         const correct_answer = this.mcqForm.answer;
+        let resindex;
         const options = _.map(this.mcqForm.options, (opt, key) => {
+          resindex = Number(key);
           if (Number(correct_answer) === key) {
-            return { 'answer': true, value: { 'type': 'text', 'body': opt.body } };
+            return { 'answer': true, value: { 'type': 'text', 'body': opt.body, 'resvalue': resindex, 'resindex': resindex } };
           } else {
-            return { 'answer': false, value: { 'type': 'text', 'body': opt.body } };
+            return { 'answer': false, value: { 'type': 'text', 'body': opt.body, 'resvalue': resindex, 'resindex': resindex  } };
           }
         });
 
@@ -404,10 +426,13 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
             this.toasterService.success('Question Accepted');
           } else if (this.updateStatus === 'Draft' && this.questionRejected) {
             this.toasterService.success('Question Rejected');
+            this.showRequestChangesPopup = false;
+            this.questionMetaData.data.rejectComment = this.rejectComment;
           } else if (this.updateStatus === 'preview') {
             this.showPreview = true;
           }
-          this.questionStatus.emit({ 'status': 'success', 'type': this.updateStatus, 'identifier': apiRes.result.node_id });
+          // tslint:disable-next-line:max-line-length
+          this.questionStatus.emit({ 'status': 'success', 'type': this.updateStatus, 'identifier': apiRes.result.node_id, 'isRejectedQuestion' : this.questionRejected });
         });
       });
   }
@@ -509,9 +534,12 @@ export class McqCreationComponent implements OnInit, OnChanges, AfterViewInit {
   requestChanges() {
     if (this.ReuestChangeForm.value.rejectComment) {
       this.handleReviewrStatus({ 'status' : 'Draft', 'rejectComment':  this.ReuestChangeForm.value.rejectComment});
-      this.showRequestChangesPopup = false;
-      this.ReuestChangeForm.reset();
     }
+  }
+
+  closeRequestChangeModal() {
+    this.showRequestChangesPopup = false;
+    this.rejectComment = this.questionMetaData.data.rejectComment ? this.questionMetaData.data.rejectComment : '';
   }
 
   onFormValueChange(isQuestionChanged?: boolean) {

@@ -1,6 +1,6 @@
 <div class="ui container" [appTelemetryStart]="telemetryCourseStart" [appTelemetryEnd]="telemetryCourseEndEvent">
 <div class="ui stackable grid">
-    <div class="twelve wide column">
+    <div class="twelve wide column" *ngIf="(popupControlService.checkPopupStatus | async) else loading">
         <div *ngIf="!enableContentPlayer && !loader">
             <div class="content" [appTelemetryImpression]="telemetryCourseImpression">
                 <div class="ui stackable grid">
@@ -80,7 +80,7 @@
                                 <p class="mb-5" *ngIf="courseHierarchy && courseHierarchy.licenseDetails && courseHierarchy.licenseDetails['name']">
                                     <span>{{resourceService.frmelmnts.lbl.licenseTerms}}:</span>
                                     {{courseHierarchy.licenseDetails['name']}} <br>
-                                    <span class="licenseTag">
+                                    <span class="licenseTag" *ngIf="courseHierarchy && courseHierarchy.licenseDetails && courseHierarchy.licenseDetails['url']">
                                         For details - <a href="{{courseHierarchy.licenseDetails['url']}}" target="_blank">{{courseHierarchy.licenseDetails['url']}}</a>
                                     </span>
                                  </p>
@@ -170,6 +170,9 @@
         <div *ngIf="showError">
         </div>
     </div>
+    <ng-template #loading>
+        <app-loader></app-loader>
+    </ng-template>
 </div>
 </div>
 <app-content-credits [contentData]="courseHierarchy" *ngIf="showContentCreditsModal" (close)="showContentCreditsModal = false">

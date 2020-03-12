@@ -1,4 +1,4 @@
-<div class="sb-meta-data-container sb-meta-data-row-facing mt-24">
+<div class="sb-meta-data-container sb-meta-data-row-facing mt-24 content-player-metadata">
 
     <ng-container *ngIf="metadata.description">
         <h4 class="sb-section-title text-capitalize mb-16 d-block">
@@ -85,8 +85,8 @@
         <dd *ngIf="metadata.keywords">{{metadata.keywords}}</dd>
     </dl>
     <dl class="sb-meta-data">
-        <dt>{{resourceService.frmelmnts.lbl.resourcetype}}</dt>
-        <dd *ngIf="metadata.resourceType">{{metadata.resourceType}}</dd>
+        <dt>{{resourceService.frmelmnts.lbl.contentType}}</dt>
+        <dd *ngIf="metadata.resourceType">{{metadata.contentType}}</dd>
     </dl>
     <dl class="sb-meta-data" *ngIf="metadata.status === 'Flagged' && metadata.flagReasons">
         <dt>{{resourceService.frmelmnts.lbl.flaggedreason}}</dt>

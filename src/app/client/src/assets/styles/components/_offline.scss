@@ -437,4 +437,32 @@
   .sb-field .ui.selection.active.dropdown {
       border-color: #96c8da;
   }
+  .sb-field .ui.selection.active.dropdown .text{
+    color: #0076FE !important;
+  }
+}
+
+.field-focus {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+.ui.selection.dropdown.fields-dropdown{
+  height: 2rem !important;
+  &:focus{
+      border: 1px solid #0076FE;  
+      color:#0076FE !important;
+  }
+}
+
+.ui.selection.dropdown.fields-dropdown:focus ~ label {
+  border:0px;
+  color:#0076FE;
+  font-weight: normal;
+}
+
+.ui.selection.dropdown.fields-dropdown option{
+background: #fff;
+color:#000;
 }

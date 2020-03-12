@@ -4,10 +4,10 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, Output, EventEm
 import * as _ from 'lodash-es';
 import { PlayerConfig } from '@sunbird/shared';
 import { Router } from '@angular/router';
-import { ToasterService, ResourceService } from '@sunbird/shared';
+import { ToasterService, ResourceService , OfflineCardService} from '@sunbird/shared';
 const OFFLINE_ARTIFACT_MIME_TYPES = ['application/epub', 'video/webm', 'video/mp4', 'application/pdf'];
 import { Subject } from 'rxjs';
-import { ConnectionService } from '@sunbird/offline';
+import { ConnectionService, ContentManagerService } from '@sunbird/offline';
 import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-content-player',
@@ -33,6 +33,7 @@ export class ContentPlayerComponent implements AfterViewInit, OnChanges, OnInit,
   @Input() isContentPresent = true;
   @Input() objectRollUp: {} = {};
   isConnected: any;
+  youTubeContentStatus: any;
   public unsubscribe$ = new Subject<void>();
   CONSTANT = {
     ACCESSEVENT: 'renderer:question:submitscore'
@@ -46,6 +47,8 @@ export class ContentPlayerComponent implements AfterViewInit, OnChanges, OnInit,
   constructor(public configService: ConfigService, public router: Router, public toasterService: ToasterService,
     public resourceService: ResourceService, public navigationHelperService: NavigationHelperService,
     private connectionService: ConnectionService,
+    private contentManagerService: ContentManagerService,
+    private offlineCardService: OfflineCardService,
     public playerService: PublicPlayerService) {
     this.buildNumber = (<HTMLInputElement>document.getElementById('buildNumber'))
       ? (<HTMLInputElement>document.getElementById('buildNumber')).value : '1.0';
@@ -73,10 +76,25 @@ export class ContentPlayerComponent implements AfterViewInit, OnChanges, OnInit,
     this.contentRatingModal = false;
     if (!_.isEmpty(this.playerConfig)) {
       this.objectRollUp = _.get(this.playerConfig, 'context.objectRollup') || {};
-      this.loadPlayer();
+        this.loadPlayer();
+        this.handleYoutubeContent(this.contentData);
     }
+
+  }
+  handleYoutubeContent(data) {
+    this.connectionService.monitor().pipe(takeUntil(this.unsubscribe$)).subscribe(isConnected => {
+      if (!isConnected && this.offlineCardService.isYoutubeContent(data)) {
+        this.youTubeContentStatus = true;
+      } else {
+        this.youTubeContentStatus = false;
+        this.loadPlayer();
+      }
+        });
   }
   ngOnInit() {
+    this.contentManagerService.deletedContent.pipe(takeUntil(this.unsubscribe$)).subscribe((data) => {
+      this.deleteContent(data);
+    });
   }
 
   loadCdnPlayer() {
@@ -142,10 +160,15 @@ export class ContentPlayerComponent implements AfterViewInit, OnChanges, OnInit,
    * Emits event when content starts playing and end event when content was played/read completely
    */
   loadPlayer() {
-    if (_.includes(this.router.url, 'browse')) {
+    const downloadStatus = _.has(this.playerConfig, 'metadata.desktopAppMetadata') ?
+    !_.has(this.playerConfig, 'metadata.desktopAppMetadata.isAvailable') ||
+    _.get(this.contentData, 'desktopAppMetadata.isAvailable') : false;
+
+    if (_.includes(this.router.url, 'browse') && !downloadStatus) {
       this.loadDefaultPlayer(`${this.configService.appConfig.PLAYER_CONFIG.localBaseUrl}webview=true`);
       return;
-    } else if (!_.includes(this.router.url, 'browse')) {
+    } else if (!_.includes(this.router.url, 'browse') || downloadStatus) {
+      this.playerConfig.data = '';
       if (_.get(this.playerConfig, 'metadata.artifactUrl')
         && _.includes(OFFLINE_ARTIFACT_MIME_TYPES, this.playerConfig.metadata.mimeType)) {
         const artifactFileName = this.playerConfig.metadata.artifactUrl.split('/');

@@ -147,15 +147,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
       this.sessionContext.contentMetadata = this.resourceDetails;
       this.existingContentVersionKey = res.versionKey;
       this.resourceStatus =  _.get(this.resourceDetails, 'status');
-      if (this.resourceStatus === 'Review') {
-        this.resourceStatusText = 'Review in Progress';
-      } else if (this.resourceStatus === 'Draft' && this.resourceDetails.rejectComment && this.resourceDetails.rejectComment !== '') {
-        this.resourceStatusText = 'Rejected';
-      } else if (this.resourceStatus === 'Live') {
-        this.resourceStatusText = 'Published';
-      } else {
-        this.resourceStatusText = this.resourceStatus;
-      }
+      this.setResourceStatus();
       if (this.resourceDetails.questionCategories) {
         this.sessionContext.questionType = _.lowerCase(_.nth(this.resourceDetails.questionCategories, 0));
       }
@@ -173,6 +165,18 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.handleActionButtons();
     });
+  }
+
+  setResourceStatus() {
+    if (this.resourceStatus === 'Review') {
+      this.resourceStatusText = 'Review in Progress';
+    } else if (this.resourceStatus === 'Draft' && this.resourceDetails.rejectComment && this.resourceDetails.rejectComment !== '') {
+      this.resourceStatusText = 'Rejected';
+    } else if (this.resourceStatus === 'Live') {
+      this.resourceStatusText = 'Published';
+    } else {
+      this.resourceStatusText = this.resourceStatus;
+    }
   }
 
   public getLicences() {
@@ -289,7 +293,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
           this.sessionContext.isReadOnlyMode = true;
         }
 
-        if (assessment_item && assessment_item.rejectComment === '') {
+        if (assessment_item) {
           const index = _.findIndex(this.questionList, {identifier: questionId});
           this.questionList[index].rejectComment = assessment_item.rejectComment;
           this.questionList[index].status = assessment_item.status;
@@ -299,7 +303,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
          this.sessionContext.questionsIds = questionsIds;
         // tslint:disable-next-line:max-line-length
         this.refreshEditor();
-        if (actionStatus) {  this.saveContent(actionStatus); }
+        if (actionStatus && actionStatus !== 'requestChange') {  this.saveContent(actionStatus); }
         this.previewBtnVisibility = true;
       });
   }
@@ -373,6 +377,8 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
       this.previewBtnVisibility = false;
       this.goToNextQuestionStatus = true;
       return;
+    } else if (event.type === 'Draft' && event.isRejectedQuestion) {
+      event.type = 'requestChange';
     }
 
     this.goToNextQuestionStatus = true;
@@ -609,8 +615,17 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
       };
       this.updateContent(reqBody, this.sessionContext.resourceIdentifier)
       .subscribe((res) => {
-        if (res.responseCode === 'OK' && (res.result.content_id || res.result.node_id)) {
-          this.toasterService.success(this.resourceService.messages.smsg.m0060);
+        const contentId = res.result.content_id || res.result.node_id;
+        if (this.sessionContext.collection && this.sessionContext.textBookUnitIdentifier) {
+          this.collectionHierarchyService.addResourceToHierarchy(
+            this.sessionContext.collection, this.sessionContext.textBookUnitIdentifier, contentId
+          )
+          .subscribe((data) => {
+            this.toasterService.success(this.resourceService.messages.smsg.m0060);
+            this.sessionContext.contentMetadata.name = this.resourceName;
+          }, (err) => {
+            this.toasterService.error(this.resourceService.messages.fmsg.m0098);
+          });
         }
       });
     }
@@ -766,7 +781,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
     }, err => {
       console.log(err);
     }), catchError(err => {
-      const errInfo = { errorMsg: 'Content updation failed' };
+      const errInfo = { errorMsg: this.resourceService.messages.fmsg.m0098 };
       return throwError(this.cbseService.apiErrorHandling(err, errInfo));
     }));
   }

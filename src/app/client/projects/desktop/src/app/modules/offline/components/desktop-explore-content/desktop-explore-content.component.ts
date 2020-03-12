@@ -6,7 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import {
   ResourceService, ConfigService, ToasterService, INoResultMessage,
-  ILoaderMessage, UtilService, PaginationService, NavigationHelperService
+  ILoaderMessage, UtilService, PaginationService, NavigationHelperService, OfflineCardService
 } from '@sunbird/shared';
 import { PublicPlayerService } from '@sunbird/public';
 import { Location } from '@angular/common';
@@ -46,11 +46,13 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
   backButtonInteractEdata: IInteractEventEdata;
   filterByButtonInteractEdata: IInteractEventEdata;
   telemetryImpression: IImpressionEventInput;
-
+  showModal = false;
+  downloadIdentifier: string;
   @Input() contentList: any[] = [];
   @Input() isOnlineContents = false;
   @Output() visits: EventEmitter<any> = new EventEmitter();
-
+  unHandledFailedList = [];
+  contentDownloadStatus = {};
   constructor(
     public contentManagerService: ContentManagerService,
     public router: Router,
@@ -68,6 +70,7 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
     private connectionService: ConnectionService,
     public navigationHelperService: NavigationHelperService,
     public telemetryService: TelemetryService,
+    private offlineCardService: OfflineCardService
   ) {
     this.filterType = this.configService.appConfig.explore.filterType;
   }
@@ -82,11 +85,10 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
         this.isConnected = isConnected;
       });
 
-    this.contentManagerService.downloadListEvent
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((data) => {
-        this.updateCardData(data);
-      });
+    this.contentManagerService.contentDownloadStatus$.subscribe( contentDownloadStatus => {
+      this.contentDownloadStatus = contentDownloadStatus;
+      this.updateCardData();
+    });
 
   }
 
@@ -178,9 +180,13 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
         this.logTelemetry(event.data, 'play-content');
         break;
       case 'DOWNLOAD':
-        this.showDownloadLoader = true;
-        this.downloadContent(_.get(event, 'content.metaData.identifier'));
-        this.logTelemetry(event.data, 'download-content');
+        this.downloadIdentifier = _.get(event, 'content.metaData.identifier');
+        this.showModal = this.offlineCardService.isYoutubeContent(event.data);
+        if (!this.showModal) {
+          this.showDownloadLoader = true;
+          this.downloadContent(this.downloadIdentifier);
+          this.logTelemetry(event.data, 'download-content');
+        }
         break;
       case 'SAVE':
         this.showExportLoader = true;
@@ -188,6 +194,11 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
         this.logTelemetry(event.data, 'export-content');
         break;
     }
+  }
+
+  callDownload() {
+    this.showDownloadLoader = true;
+    this.downloadContent(this.downloadIdentifier);
   }
 
   playContent(event) {
@@ -200,18 +211,25 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
 
   downloadContent(contentId) {
     this.contentManagerService.downloadContentId = contentId;
+    this.contentManagerService.failedContentName = this.contentName;
     this.contentManagerService.startDownload({})
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(data => {
+        this.downloadIdentifier = '';
         this.showDownloadLoader = false;
         this.contentManagerService.downloadContentId = '';
+        this.contentManagerService.failedContentName = '';
       }, error => {
+        this.downloadIdentifier = '';
         this.contentManagerService.downloadContentId = '';
+        this.contentManagerService.failedContentName = '';
         this.showDownloadLoader = false;
         _.each(this.contentList, (contents) => {
           contents['downloadStatus'] = this.resourceService.messages.stmsg.m0138;
         });
-        this.toasterService.error(this.resourceService.messages.fmsg.m0090);
+        if (!(error.error.params.err === 'LOW_DISK_SPACE')) {
+          this.toasterService.error(this.resourceService.messages.fmsg.m0090);
+            }
       });
   }
 
@@ -229,10 +247,10 @@ export class DesktopExploreContentComponent implements OnInit, OnDestroy {
       });
   }
 
-  updateCardData(downloadListdata) {
+  updateCardData() {
     if (this.isBrowse || this.isOnlineContents) {
       _.each(this.contentList, (contents) => {
-        this.publicPlayerService.updateDownloadStatus(downloadListdata, contents);
+        this.publicPlayerService.updateDownloadStatus(this.contentDownloadStatus, contents);
       });
       this.contentList = this.utilService.addHoverData(this.contentList, this.isBrowse);
     }

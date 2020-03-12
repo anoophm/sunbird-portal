@@ -25,7 +25,9 @@ export class ContentHeaderComponent implements OnInit, OnDestroy {
   public isConnected;
   telemetryImpression: IImpressionEventInput;
   dialCode: string;
-
+  disableDelete = false;
+  contentDownloadStatus = {};
+  showDownloadLoader = false;
   constructor(
     public location: Location,
     public utilService: UtilService,
@@ -44,8 +46,9 @@ export class ContentHeaderComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.dialCode = _.get(this.activatedRoute, 'snapshot.queryParams.dialCode');
     this.currentRoute = _.includes(this.router.url, 'browse') ? 'browse' : 'My Downloads';
-    this.contentManagerService.downloadListEvent.pipe(takeUntil(this.unsubscribe$)).subscribe((data) => {
-      this.checkDownloadStatus(data);
+    this.contentManagerService.contentDownloadStatus$.pipe(takeUntil(this.unsubscribe$)).subscribe( contentDownloadStatus => {
+      this.contentDownloadStatus = contentDownloadStatus;
+      this.checkDownloadStatus();
     });
     this.checkOnlineStatus();
     this.router.events
@@ -59,11 +62,17 @@ export class ContentHeaderComponent implements OnInit, OnDestroy {
     });
   }
 
-  checkDownloadStatus(downloadListdata) {
-    this.collectionData = this.playerService.updateDownloadStatus(downloadListdata, this.collectionData);
+  checkDownloadStatus() {
+    if (this.collectionData) {
+      const downloadStatus = ['CANCELED', 'CANCEL', 'FAILED', 'DOWNLOAD'];
+      const status = this.contentDownloadStatus[this.collectionData.identifier];
+      this.collectionData['downloadStatus'] = _.isEqual(downloadStatus, status) ? 'DOWNLOAD' :
+      (_.includes(['INPROGRESS', 'RESUME', 'INQUEUE'], status) ? 'DOWNLOADING' : _.isEqual(status, 'COMPLETED') ? 'DOWNLOADED' : status);
+    }
   }
 
   updateCollection(collection) {
+    collection['downloadStatus'] = this.resourceService.messages.stmsg.m0140;
     this.logTelemetry('update-collection');
     const request = {
       contentId: collection.identifier
@@ -104,32 +113,49 @@ export class ContentHeaderComponent implements OnInit, OnDestroy {
   }
 
   downloadCollection(collection) {
+    this.showDownloadLoader = true;
+    this.disableDelete = false;
+    collection['downloadStatus'] = this.resourceService.messages.stmsg.m0140;
     this.logTelemetry('download-collection');
     this.contentManagerService.downloadContentId = collection.identifier;
+    this.contentManagerService.failedContentName = collection.name;
     this.contentManagerService.startDownload({}).pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
       this.contentManagerService.downloadContentId = '';
+      this.showDownloadLoader = false;
       collection['downloadStatus'] = this.resourceService.messages.stmsg.m0140;
     }, error => {
+      this.disableDelete = true;
+      this.showDownloadLoader = false;
       this.contentManagerService.downloadContentId = '';
+      this.contentManagerService.failedContentName = '';
       collection['downloadStatus'] = this.resourceService.messages.stmsg.m0138;
-      this.toasterService.error(this.resourceService.messages.fmsg.m0090);
+      if (!(error.error.params.err === 'LOW_DISK_SPACE')) {
+        this.toasterService.error(this.resourceService.messages.fmsg.m0090);
+          }
     });
   }
 
   deleteCollection(collectionData) {
+    this.disableDelete = true;
     this.logTelemetry('delete-collection');
     const request = {request: {contents: [collectionData.identifier]}};
     this.contentManagerService.deleteContent(request).pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
     this.toasterService.success(this.resourceService.messages.stmsg.desktop.deleteTextbookSuccessMessage);
-    this.goBack();
+    collectionData['downloadStatus'] = 'DOWNLOAD';
+    collectionData['desktopAppMetadata.isAvailable'] = false;
+    if (!this.router.url.includes('browse')) {
+      this.goBack();
+    }
     }, err => {
+      this.disableDelete = false;
       this.toasterService.error(this.resourceService.messages.etmsg.desktop.deleteTextbookErrorMessage);
     });
   }
 
-    checkStatus(status) {
-      return this.utilService.getPlayerDownloadStatus(status, this.collectionData, this.currentRoute);
-    }
+  checkStatus(status) {
+    this.checkDownloadStatus();
+    return this.utilService.getPlayerDownloadStatus(status, this.collectionData, this.currentRoute);
+  }
 
   isBrowse() {
     return this.router.url.includes('browse');
