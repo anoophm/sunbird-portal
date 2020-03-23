@@ -17,7 +17,8 @@
 </div> -->
 <extension-point [name]="'content-manager'" *ngIf="isOffline && !showDownloadmanager"></extension-point>
 
-<footer class="footer" *ngIf="showFooter && !isOffline" #footerFix>
+<footer class="footer 
+" *ngIf="showFooter && !isOffline" #footerFix>
   <div class="ui container">
     <div class="ui grid stackable">
       <div class="four wide column footerMenu mr-auto">
@@ -48,6 +49,8 @@
             </a>
           </li> -->
         </ul>
+        
+     
       </div>
 
       <div class="download-mobile-app">
@@ -74,7 +77,7 @@
           <a appTelemetryInteract [telemetryInteractEdata]="setTelemetryInteractEdata('t&c')" href="/term-of-use.html">
             {{resourceService.frmelmnts?.lnk?.footerTnC}}
           </a>
-          <span>| &copy; {{date | date:'yyyy'}}, DIKSHA</span>
+          <span>| &copy; {{date | date:'yyyy'}}, {{instance}}</span>
         </label>
         <label class="sb-footer-license">
           <img src="/assets/images/CCby.svg">

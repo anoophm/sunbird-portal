@@ -47,8 +47,9 @@ body {
 }
 .sb-offline {
   padding-bottom: 0px;
-
 }
+
+
 
 *[lang="en"] body {
   font-family: $font-stack-en;
@@ -228,6 +229,22 @@ app-workspace {
   margin-top: -35px;
 }
 
+/* for sticky header desktop-app */
+.sb-sticky{
+  position: -webkit-sticky;
+  position: sticky;
+}
+
+.back-bar{
+  top:calculateRem(65px);
+  z-index: 2;
+}
+
+@include respond-below(sm){
+  .back-bar {
+    top: calculateRem(182px);
+  }
+}
 // common consumption cards for library
 .sb-library-cards{
   .ui.grid{

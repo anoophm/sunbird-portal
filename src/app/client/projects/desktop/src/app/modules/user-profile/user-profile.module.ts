@@ -1,3 +1,4 @@
+import { OfflineModule } from './../offline/offline.module';
 import { FileSizeModule } from 'ngx-filesize';
 import { TelemetryModule } from '@sunbird/telemetry';
 import { NgModule } from '@angular/core';
@@ -5,7 +6,7 @@ import { CommonModule } from '@angular/common';
 
 import { UserProfileRoutingModule } from './user-profile-routing.module';
 import { ProfilePageComponent, AboutUsComponent,
-  UpdateContentPreferenceComponent, UpdateLocationComponent, TelemetryComponent} from './components';
+  UpdateContentPreferenceComponent, UpdateLocationComponent, TelemetryComponent, TelemetryImportComponent} from './components';
 import {
   SuiModalModule, SuiSelectModule
 } from 'ng2-semantic-ui';
@@ -19,7 +20,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     AboutUsComponent,
     UpdateContentPreferenceComponent,
     UpdateLocationComponent,
-    TelemetryComponent
+    TelemetryComponent,
+    TelemetryImportComponent
   ],
   imports: [
     CommonModule,
@@ -30,7 +32,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     SuiModalModule,
     SuiSelectModule,
     TelemetryModule,
-    FileSizeModule
+    FileSizeModule,
+    OfflineModule
 
   ]
 })

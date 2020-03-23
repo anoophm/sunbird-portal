@@ -13,6 +13,7 @@ oneDayMS = 86400000,
 pathMap = {},
 cdnIndexFileExist = fs.existsSync(path.join(__dirname, '../dist', 'index_cdn.ejs')),
 proxyUtils = require('../proxy/proxyUtils.js')
+const CONSTANTS = require('../helpers/constants');
 
 logger.info({msg:`CDN index file exist: ${cdnIndexFileExist}`});
 
@@ -87,11 +88,11 @@ module.exports = (app, keycloak) => {
   })
 
   app.all('/play/quiz/*', playContent);
-
+  // all public route should also have same route prefixed with slug
   app.all(['/', '/get', '/:slug/get', '/:slug/get/dial/:dialCode',  '/get/dial/:dialCode', '/explore',
-    '/explore/*', '/:slug/explore', '/:slug/explore/*', '/play/*', '/explore-course', '/explore-course/*',
+    '/explore/*', '/:slug/explore', '/:slug/explore/*', '/play/*', '/:slug/play/*',  '/explore-course', '/explore-course/*',
     '/:slug/explore-course', '/:slug/explore-course/*', '/:slug/signup', '/signup', '/:slug/sign-in/*',
-    '/sign-in/*', '/download/*', '/accountMerge/*', '/:slug/download/*', '/certs/*', '/recover/*'], redirectTologgedInPage, indexPage(false))
+    '/sign-in/*', '/download/*', '/accountMerge/*','/:slug/accountMerge/*', '/:slug/download/*', '/certs/*', '/:slug/certs/*', '/recover/*', '/:slug/recover/*'], redirectTologgedInPage, indexPage(false))
 
   app.all(['*/dial/:dialCode', '/dial/:dialCode'], (req, res) => res.redirect('/get/dial/' + req.params.dialCode + '?source=scan'))
 
@@ -103,9 +104,12 @@ module.exports = (app, keycloak) => {
     '/resources/*', '/myActivity', '/myActivity/*', '/org/*', '/manage', '/contribute','/contribute/*'], keycloak.protect(), indexPage(true))
 
   app.all('/:tenantName', renderTenantPage)
+
+  app.all('/redirect/login', redirectToLogin)
 }
 
 function getLocals(req) {
+  const slug = req.params.slug;
   var locals = {}
   if(req.includeUserDetail){
     locals.userId = _.get(req, 'session.userId') ? req.session.userId : null
@@ -142,6 +146,7 @@ function getLocals(req) {
   locals.logFingerprintDetails = envHelper.LOG_FINGERPRINT_DETAILS,
   locals.deviceId = '';
   locals.deviceProfileApi = envHelper.DEVICE_PROFILE_API;
+  locals.slug = slug ? slug : '';
   return locals
 }
 
@@ -254,3 +259,10 @@ const playContent = (req, res) => {
     renderDefaultIndexPage(req, res);
   }
 }
+
+const redirectToLogin = (req, res) => {
+  const redirectUrl = req.query.redirectUri || '/resources';
+  const url = `${envHelper.PORTAL_AUTH_SERVER_URL}/realms/${envHelper.PORTAL_REALM}/protocol/openid-connect/auth`;
+  const query = `?client_id=portal&state=3c9a2d1b-ede9-4e6d-a496-068a490172ee&redirect_uri=https://${req.get('host')}/${redirectUrl}&scope=openid&version=${CONSTANTS.KEYCLOAK.VERSION}&response_type=code&error_message=${req.query.error_message}`;
+  res.redirect(url + query);
+};

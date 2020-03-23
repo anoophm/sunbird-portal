@@ -81,6 +81,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
         orgList.push(org);
+      } else {
+        if (org.locations && org.locations.length !== 0) {
+          orgList.push(org);
+        }
       }
       _.forEach(org.roles, (value, key) => {
         if (value !== 'PUBLIC') {
@@ -218,7 +222,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy, AfterViewInit {
       pageid: 'profile-read'
     };
     this.editProfileInteractEdata = {
-      id: 'profile-edit-address',
+      id: 'profile-edit',
       type: 'click',
       pageid: 'profile-read'
     };

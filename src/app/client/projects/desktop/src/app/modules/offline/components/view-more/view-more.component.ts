@@ -10,7 +10,7 @@ import {
 } from '@sunbird/shared';
 import { PublicPlayerService } from '@sunbird/public';
 import { Location } from '@angular/common';
-import { SearchService, OrgDetailsService, FrameworkService } from '@sunbird/core';
+import { SearchService, OrgDetailsService, FrameworkService, UserService } from '@sunbird/core';
 import { IPagination } from '@sunbird/announcement';
 import { ContentManagerService, ConnectionService } from '../../services';
 import { IInteractEventEdata, IImpressionEventInput, TelemetryService } from '@sunbird/telemetry';
@@ -35,7 +35,7 @@ export class ViewMoreComponent implements OnInit, OnDestroy {
   isViewAll = false;
   contentList = [];
   apiQuery: any = {};
-
+  filterData: any;
   paginationDetails: IPagination;
   isConnected = false;
   isBrowse = false;
@@ -50,6 +50,7 @@ export class ViewMoreComponent implements OnInit, OnDestroy {
   myDownloadsLinkInteractEdata: IInteractEventEdata;
 
   constructor(
+    public userService: UserService,
     public contentManagerService: ContentManagerService,
     public router: Router,
     public searchService: SearchService,
@@ -74,7 +75,7 @@ export class ViewMoreComponent implements OnInit, OnDestroy {
     this.isBrowse = Boolean(_.includes(this.router.url, 'browse'));
     this.setTelemetryData();
     this.utilService.emitHideHeaderTabsEvent(true);
-    this.orgDetailsService.getOrgDetails(this.activatedRoute.snapshot.params.slug)
+    this.orgDetailsService.getOrgDetails(this.userService.slug)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((orgDetails: any) => {
         this.hashTagId = orgDetails.hashTagId;
@@ -132,6 +133,7 @@ export class ViewMoreComponent implements OnInit, OnDestroy {
     this.searchService.contentSearch(option)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(response => {
+        this.filterData =  _.get(response, 'result.facets');
         this.showLoader = false;
         const orderedContents = _.orderBy(_.get(response, 'result.content'), ['desktopAppMetadata.updatedOn'], ['desc']);
         this.contentList = this.formatSearchResults(orderedContents);
@@ -179,6 +181,7 @@ export class ViewMoreComponent implements OnInit, OnDestroy {
           this.paginationDetails = this.paginationService.getPager(data.result.count, this.paginationDetails.currentPage,
             this.configService.appConfig.SEARCH.PAGE_LIMIT);
         }
+        this.filterData =  _.get(data, 'result.facets');
         const { constantData, metaData, dynamicFields } = this.configService.appConfig.LibrarySearch;
         this.contentList = this.utilService.getDataForCard(data.result.content, constantData, dynamicFields, metaData);
         this.contentList = this.utilService.addHoverData(this.contentList, this.isBrowse);
