@@ -14,7 +14,6 @@ import { takeUntil } from 'rxjs/operators';
 import * as TreeModel from 'tree-model';
 import { environment } from '@sunbird/environment';
 import { Router } from '@angular/router';
-import { ConnectionService } from '@sunbird/offline';
 
 @Component({
   selector: 'app-collection-tree',
@@ -24,8 +23,9 @@ export class CollectionTreeComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() public nodes: ICollectionTreeNodes;
   @Input() public options: ICollectionTreeOptions;
-  @Output() public contentSelect: EventEmitter<{id: string, title: string}> = new EventEmitter();
+  @Output() public contentSelect: EventEmitter<{id: string, title: string, parentId?: string}> = new EventEmitter();
   @Input() contentStatus: any;
+  @Input() telemetryInteractData;
   private rootNode: any;
   private selectLanguage: string;
   private contentComingSoonDetails: any;
@@ -43,19 +43,12 @@ export class CollectionTreeComponent implements OnInit, OnChanges, OnDestroy {
   status = this.isConnected ? 'ONLINE' : 'OFFLINE';
 
   constructor(public orgDetailsService: OrgDetailsService,
-    private userService: UserService, public router: Router, private connectionService: ConnectionService,
+    private userService: UserService, public router: Router,
     public resourceService?: ResourceService) {
     this.resourceService = resourceService;
     this.orgDetailsService = orgDetailsService;
   }
   ngOnInit() {
-    this.connectionService.monitor().pipe(
-      takeUntil(this.unsubscribe$))
-      .subscribe(isConnected => {
-        this.isConnected = isConnected;
-        this.status = isConnected ? 'ONLINE' : 'OFFLINE';
-        this.initialize();
-      });
     /*
     * rootOrgId is required to select the custom comming soon message from systemsettings
     */
@@ -99,7 +92,7 @@ export class CollectionTreeComponent implements OnInit, OnChanges, OnDestroy {
 
   public onItemSelect(item: any) {
     if (!item.folder) {
-      this.contentSelect.emit({ id: item.data.id, title: item.title });
+      this.contentSelect.emit({ id: item.data.id, title: item.title, parentId: _.get(item, 'data.parent.id') });
     }
   }
 
