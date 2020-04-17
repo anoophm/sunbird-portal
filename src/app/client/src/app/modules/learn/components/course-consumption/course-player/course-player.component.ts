@@ -351,9 +351,13 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         request['status'] = 2;
       }
     }
-
+    console.log('contentStatus before', JSON.stringify(this.contentStatus));
     this.courseConsumptionService.updateContentsState(request).pipe(first())
-      .subscribe(updatedRes => this.contentStatus = updatedRes.content,
+      .subscribe(updatedRes => {
+        this.contentStatus = _.cloneDeep(updatedRes.content); // angular change detection is not working if the ref is same,
+        // hence deepCloning
+        console.log('contentStatus after', JSON.stringify(this.contentStatus));
+      },
         err => console.log('updating content status failed', err));
   }
 

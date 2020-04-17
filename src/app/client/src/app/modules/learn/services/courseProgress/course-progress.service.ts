@@ -1,5 +1,5 @@
 import { of as observableOf, Observable, of } from 'rxjs';
-import { catchError, map, retry } from 'rxjs/operators';
+import { catchError, map, retry, delay } from 'rxjs/operators';
 import { Injectable, EventEmitter } from '@angular/core';
 import { ConfigService, ServerResponse, ToasterService, ResourceService } from '@sunbird/shared';
 import { ContentService, UserService, CoursesService } from '@sunbird/core';
@@ -134,8 +134,10 @@ export class CourseProgressService {
       if (index !== -1 && req.status >= courseProgress.content[index].status
         && courseProgress.content[index].status !== 2) {
         courseProgress.content[index].status = req.status;
-        return this.updateContentStateToServer(courseProgress.content[index]).pipe(
+        // return this.updateContentStateToServer(courseProgress.content[index]).pipe(
+        return of({}).pipe(delay(5000), // mocking api response with dekay
           map((res: any) => {
+            console.log('contentStatus mocking api');
             this.courseProgress[courseId_batchId].content[index].status = req.status;
             this.courseProgress[courseId_batchId].content[index].lastAccessTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss:SSSZZ');
             this.calculateProgress(courseId_batchId);
