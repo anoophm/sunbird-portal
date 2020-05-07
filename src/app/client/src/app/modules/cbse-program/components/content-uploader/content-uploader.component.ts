@@ -19,11 +19,11 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./content-uploader.component.scss']
 })
 export class ContentUploaderComponent implements OnInit, AfterViewInit {
-  @ViewChild('modal') modal;
-  @ViewChild('fineUploaderUI') fineUploaderUI: ElementRef;
-  @ViewChild('qq-upload-actions') actionButtons: ElementRef;
-  @ViewChild('titleTextArea') titleTextAreaa: ElementRef;
-  @ViewChild('FormControl') FormControl: NgForm;
+  @ViewChild('modal', {static: false}) modal;
+  @ViewChild('fineUploaderUI', {static: false}) fineUploaderUI: ElementRef;
+  @ViewChild('qq-upload-actions', {static: false}) actionButtons: ElementRef;
+  @ViewChild('titleTextArea', {static: false}) titleTextAreaa: ElementRef;
+  @ViewChild('FormControl', {static: false}) FormControl: NgForm;
   // @ViewChild('contentTitle') contentTitle: ElementRef;
   @Input() contentUploadComponentInput: IContentUploadComponentInput;
 

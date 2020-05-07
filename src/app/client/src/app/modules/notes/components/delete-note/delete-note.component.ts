@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 
 export class DeleteNoteComponent implements OnInit, OnDestroy {
 
-  @ViewChild('modal') modal;
+  @ViewChild('modal', {static: false}) modal;
   /**
    * This variable contains the details of the note to be deleted.
    */

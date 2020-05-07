@@ -15,7 +15,7 @@ import { ProfileService } from '@sunbird/profile';
 import { Observable, of, throwError, combineLatest, BehaviorSubject, forkJoin } from 'rxjs';
 import { first, filter, mergeMap, tap, map, skipWhile, startWith, takeUntil } from 'rxjs/operators';
 import { CacheService } from 'ng2-cache-service';
-import { DOCUMENT } from '@angular/platform-browser';
+import { DOCUMENT } from "@angular/common";
 /**
  * main app component
  */
@@ -24,7 +24,7 @@ import { DOCUMENT } from '@angular/platform-browser';
   templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit, OnDestroy {
-  @ViewChild('frameWorkPopUp') frameWorkPopUp;
+  @ViewChild('frameWorkPopUp', {static: false}) frameWorkPopUp;
   /**
    * user profile details.
    */

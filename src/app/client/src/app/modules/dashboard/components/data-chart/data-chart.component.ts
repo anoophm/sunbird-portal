@@ -67,9 +67,9 @@ export class DataChartComponent implements OnInit, OnDestroy {
   showLastUpdatedOn: Boolean = false;
   showChart: Boolean = false;
 
-  @ViewChild('datePickerForFilters') datepicker: ElementRef;
-  @ViewChild('chartRootElement') chartRootElement;
-  @ViewChild('chartCanvas') chartCanvas;
+  @ViewChild('datePickerForFilters', {static: false}) datepicker: ElementRef;
+  @ViewChild('chartRootElement', {static: false}) chartRootElement;
+  @ViewChild('chartCanvas', {static: false}) chartCanvas;
 
   ranges: any = {
     'Today': [moment(), moment()],
@@ -80,7 +80,7 @@ export class DataChartComponent implements OnInit, OnDestroy {
     'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
   };
 
-  @ViewChild(BaseChartDirective) chartDirective: BaseChartDirective;
+  @ViewChild(BaseChartDirective, {static: false}) chartDirective: BaseChartDirective;
   constructor(public resourceService: ResourceService, private fb: FormBuilder, private cdr: ChangeDetectorRef,
     private toasterService: ToasterService, private activatedRoute: ActivatedRoute, private sanitizer: DomSanitizer,
     private usageService: UsageService) {

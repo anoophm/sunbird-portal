@@ -17,7 +17,7 @@ export class ResourceReorderComponent implements OnInit {
   @Input() programContext;
   @Input() prevUnitSelect;
   @Output() moveEvent = new EventEmitter<any>();
-  @ViewChild('modal') modal;
+  @ViewChild('modal', {static: false}) modal;
   public telemetryInteractCdata: any;
   public telemetryInteractPdata: any;
   showMoveButton = false;

@@ -209,7 +209,7 @@ display: inline-block;
    }
 }
 
-.my-avatar.verified /deep/ .avatar-content {
+.my-avatar.verified ::ng-deep .avatar-content {
   border: 1px solid #008840 !important;
 }
  

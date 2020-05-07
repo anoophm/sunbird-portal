@@ -69,7 +69,6 @@
         "app/modules/content-search"
       ]
     },
-    "module": "es2015",
     "types": []
   },
   "exclude": [

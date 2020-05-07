@@ -25,12 +25,12 @@ import { ProgramTelemetryService } from '../../../program/services';
 
 export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild('questionCreationChild') questionCreationChild;
+  @ViewChild('questionCreationChild', {static: false}) questionCreationChild;
   @Output() changeStage = new EventEmitter<any>();
   @Input() practiceQuestionSetComponentInput: any;
-  @ViewChild('FormControl') FormControl: NgForm;
+  @ViewChild('FormControl', {static: false}) FormControl: NgForm;
   @Output() uploadedContentMeta = new EventEmitter<any>();
-  @ViewChild('resourceTtlTextarea') resourceTtlTextarea: ElementRef;
+  @ViewChild('resourceTtlTextarea', {static: false}) resourceTtlTextarea: ElementRef;
 
   public sessionContext: any;
   public programContext: any;

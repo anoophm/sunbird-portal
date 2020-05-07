@@ -12,7 +12,7 @@ import { UserService } from '@sunbird/core';
 })
 export class ResourceTemplateComponent implements OnInit, OnDestroy {
 
-  @ViewChild('modal') private modal;
+  @ViewChild('modal', {static: false}) private modal;
   @Input() resourceTemplateComponentInput: IResourceTemplateComponentInput = {};
   @Output() templateSelection = new EventEmitter<any>();
   showButton = false;

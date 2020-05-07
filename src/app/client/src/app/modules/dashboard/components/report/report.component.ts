@@ -26,7 +26,7 @@ export class ReportComponent implements OnInit, AfterViewInit {
   public reportObj: any;
   telemetryImpression: IImpressionEventInput;
   @ViewChildren(DataChartComponent) chartsComponentList: QueryList<DataChartComponent>;
-  @ViewChild('reportElement') reportElement;
+  @ViewChild('reportElement', {static: false}) reportElement;
   public hideElements: boolean;
   public reportExportInProgress = false;
 

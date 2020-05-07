@@ -1,7 +1,7 @@
-var conceptModal;
+var conceptModal, modalTemplate, nodeElementHtml, clickHead;
 (function () {
   module.exports = function (options) {
-    var actionButtons, config, count, initialize, initializeNodeList, initializeNodes, loadNodes, modal, nodeClicked, nodeIsPicked, nodes, pickNode, picked, recursiveNodeSearch, renderList, renderTree, showPicked, showSearch, showTree, tabs, unpickNode, updatePickedIds, updatePickedNodes, widget;
+    var actionButtons, config, count, initialize, initializeNodeList, initializeNodes, loadNodes, modal, nodeClicked, nodeIsPicked, nodes, pickNode, picked, recursiveNodeSearch, renderList, renderTree, showPicked, showSearch, showTree, tabs, unpickNode, updatePickedIds, updatePickedNodes, widget, clearSearch, initializeNodeListForSelected,
     widget = $(this);
     picked = [];
     nodes = [];
@@ -244,8 +244,8 @@ var conceptModal;
         if (config.hidden(node)) {
           continue;
         }
-        nodeElementhtml = "<div class=\"node childless\" data-id=\""+node.id+"\" data-name=\""+node.name+"\"><div class=\"head "+node.selectable+"\"><i class=\"square outline icon\"></i><i class=\"checkmark icon\"></i><a class=\"name\">"+node.name+"</a></div> <div class=\"content\"></div></div>";
-        nodeElement = $(nodeElementhtml).appendTo(list);
+        nodeElementHtml = "<div class=\"node childless\" data-id=\""+node.id+"\" data-name=\""+node.name+"\"><div class=\"head "+node.selectable+"\"><i class=\"square outline icon\"></i><i class=\"checkmark icon\"></i><a class=\"name\">"+node.name+"</a></div> <div class=\"content\"></div></div>";
+        nodeElement = $(nodeElementHtml).appendTo(list);
         if (config.disabled(node)) {
           nodeElement.addClass('disabled');
         }
