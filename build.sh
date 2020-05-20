@@ -77,7 +77,6 @@ wait
 
 BUILD_ENDTIME=$(date +%s)
 echo "Client and Server Build complete Took $[$BUILD_ENDTIME - $STARTTIME] seconds to complete."
-du -hcs app_dist
 cd app_dist
 sed -i "/version/a\  \"buildHash\": \"${commit_hash}\"," package.json
 echo "starting docker build"
