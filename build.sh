@@ -2,9 +2,9 @@
 STARTTIME=$(date +%s)
 echo "Starting portal build from build.sh"
 set -euo pipefail	
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 build_tag=$1
 name=player
 node=$2
@@ -13,7 +13,7 @@ export sunbird_content_editor_artifact_url=$4
 export sunbird_collection_editor_artifact_url=$5
 export sunbird_generic_editor_artifact_url=$6
 commit_hash=$(git rev-parse --short HEAD)
-nvm install 12.16.1 # same is used in client and server
+# nvm install 12.16.1 # same is used in client and server
 
 cd src/app
 rm -rf app_dist/
@@ -41,7 +41,7 @@ build_client_cdn(){
 # function to run client build
 build_client(){
     echo "Building client in background"
-    nvm use 12.16.1
+    # nvm use 12.16.1
     cd client
     echo "starting client npm install"
     npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
@@ -61,7 +61,7 @@ build_server(){
     echo "copying requied files to app_dist"
     cp -R libs helpers proxy resourcebundles package.json framework.config.js package-lock.json sunbird-plugins routes constants controllers server.js ./../../Dockerfile app_dist
     cd app_dist
-    nvm use 12.16.1
+    # nvm use 12.16.1
     echo "starting server npm install"
     npm i -g npm@6.13.4
     npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
