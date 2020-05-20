@@ -44,9 +44,9 @@ build_client(){
     nvm use 12.16.1
     cd client
     echo "starting client npm install"
-    # npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
+    npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
     echo "completed client npm install"
-    # npm run download-editors # download editors to assests folder
+    npm run download-editors # download editors to assests folder
 
     build_client_local & # Put client local build in background 
     build_client_cdn & # Put client local build in background
