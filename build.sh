@@ -24,7 +24,7 @@ build_client_local(){
     echo "starting client local prod build"
     npm run build # Angular prod build
     echo "completed client local prod build"
-    npm run post-build # gzip files
+    # npm run post-build # gzip files commenting this as this can be achived at proxy
     cd ..
     mv dist/index.html dist/index.ejs # rename index file
     echo "Copying Client dist to app_dist"
