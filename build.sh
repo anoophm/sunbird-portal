@@ -19,23 +19,39 @@ cd src/app
 rm -rf app_dist/
 mkdir app_dist/ # this folder should be created prior server and client build
 
+# function to run client local build
+build_client_local(){
+    echo "starting client local prod build"
+    npm run build # Angular prod build
+    echo "completed client local prod build"
+    npm run post-build # gzip files
+    cd ..
+    mv dist/index.html dist/index.ejs # rename index file
+    echo "Copying Client dist to app_dist"
+    cp -R dist app_dist
+}
+# function to run client cdn build
+build_client_cdn(){
+    echo "starting client cdn prod build"
+    # npm run build-cdn -- --deployUrl $cdnUrl # prod command
+    npm run build-cdn # testing command
+    npm run inject-cdn-fallback
+    echo "completed client cdn prod build"
+}
 # function to run client build
 build_client(){
     echo "Building client in background"
     nvm use 12.16.1
     cd client
     echo "starting client npm install"
-    npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
+    # npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
     echo "completed client npm install"
-    npm run download-editors # download editors to assests folder
-    echo "starting client prod build"
-    npm run build # Angular prod build
-    echo "completed client prod build"
-    npm run post-build # gzip files
-    cd ..
-    mv dist/index.html dist/index.ejs # rename index file
-    echo "Copying Client dist to app_dist"
-    cp -R dist app_dist
+    # npm run download-editors # download editors to assests folder
+
+    build_client_local & # Put client local build in background 
+    build_client_cdn & # Put client local build in background
+
+    wait # wait for both build to complete
     echo "completed client post_build"
 }
 
