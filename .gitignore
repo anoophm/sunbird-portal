@@ -1,6 +1,8 @@
 node_modules
 dist
 dist-cdn
+app_dist
+metadata.json
 coverage
 documentation
 thirdparty
