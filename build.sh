@@ -69,6 +69,7 @@ build_server(){
     yarn install
     echo "completed server npm install"
     node helpers/resourceBundles/build.js
+    echo "completed resourceBundles build"
 }
 
 build_client & # Put client build in background 
