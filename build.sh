@@ -16,8 +16,8 @@ commit_hash=$(git rev-parse --short HEAD)
 # nvm install 12.16.1 # same is used in client and server
 
 cd src/app
-rm -rf app_dist/
-mkdir app_dist/ # this folder should be created prior server and client build
+mkdir -p app_dist/ # this folder should be created prior server and client build
+rm -rf app_dist/dist # remove only dist folder rest else will be replaced by copy command
 
 # function to run client local build
 build_client_local(){
@@ -63,7 +63,7 @@ build_server(){
     cd app_dist
     # nvm use 12.16.1
     echo "starting server npm install"
-    npm i -g npm@6.13.4
+    # npm i -g npm@6.13.4
     npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
     echo "completed server npm install"
     node helpers/resourceBundles/build.js
