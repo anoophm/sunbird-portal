@@ -48,10 +48,10 @@ build_client(){
     echo "completed client npm install"
     # npm run download-editors # download editors to assests folder
 
-    build_client_local & # Put client local build in background 
-    build_client_cdn & # Put client local build in background
+    build_client_local # Put client local build in background 
+    build_client_cdn # Put client local build in background
 
-    wait # wait for both build to complete
+    # wait # wait for both build to complete
     echo "completed client post_build"
 }
 
