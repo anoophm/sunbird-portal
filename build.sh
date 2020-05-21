@@ -45,7 +45,7 @@ build_client(){
     cd client
     echo "starting client npm install"
     # npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
-    yarn install --no-progress
+    yarn install --no-progress --production=true
     echo "completed client npm install"
     # npm run download-editors # download editors to assests folder
 
@@ -66,7 +66,7 @@ build_server(){
     echo "starting server npm install"
     # npm i -g npm@6.13.4
     # npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
-    yarn install --no-progress
+    yarn install --no-progress --production=true
     echo "completed server npm install"
     node helpers/resourceBundles/build.js
     echo "completed resourceBundles build"
