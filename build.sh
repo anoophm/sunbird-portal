@@ -72,7 +72,7 @@ build_server(){
     echo "completed resourceBundles build"
 }
 
-# build_client & # Put client build in background 
+build_client & # Put client build in background 
 build_server & # Put server build in background 
 
 ## wait for both build to complete
