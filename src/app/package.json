@@ -52,6 +52,7 @@
   "scripts": {
     "server": "gulp update:index:file && node server",
     "validate": "npm ls",
+    "preinstall": "npm install ./libs/sb_logger_util_v2 && npm install ./libs/sb_telemetry_util && npm install ./libs/sb_api_interceptor && npm install ./libs/sb_cache_manager",
     "precommit": "lint-staged",
     "resource-bundles": "node helpers/resourceBundles/build.js",
     "test-with-coverage": "cd client && npm run test-coverage && cat ./coverage/lcov.info | codacy-coverage",
@@ -110,6 +111,10 @@
     "redis": "3.0.2",
     "request": "2.81.0",
     "request-promise": "^4.2.5",
+    "sb_api_interceptor": "file:libs/sb_api_interceptor",
+    "sb_cache_manager": "file:libs/sb_cache_manager",
+    "sb_logger_util_v2": "file:libs/sb_logger_util_v2",
+    "sb_telemetry_util": "file:libs/sb_telemetry_util",
     "svg2img": "0.6.1",
     "ua-parser-js": "0.7.13",
     "uuid": "3.1.0"
