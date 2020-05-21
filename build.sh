@@ -41,7 +41,7 @@ build_client_cdn(){
 # function to run client build
 build_client(){
     echo "Building client in background"
-    nvm use 12.16.1
+    # nvm use 12.16.1
     cd client
     echo "starting client npm install"
     # npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
@@ -62,7 +62,7 @@ build_server(){
     echo "copying requied files to app_dist"
     cp -R libs helpers proxy resourcebundles package.json framework.config.js package-lock.json sunbird-plugins routes constants controllers server.js ./../../Dockerfile app_dist
     cd app_dist
-    nvm use 12.16.1
+    # nvm use 12.16.1
     echo "starting server npm install"
     # npm i -g npm@6.13.4
     # npm install --production --unsafe-perm --prefer-offline --no-audit --progress=false
