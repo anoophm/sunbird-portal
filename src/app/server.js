@@ -50,7 +50,8 @@ app.use(session({
   secret: '717b3357-b2b1-4e39-9090-1c712d1b8b64',
   resave: false,
   saveUninitialized: false,
-  store: memoryStore
+  store: memoryStore,
+  cookie: { maxAge: 3.6e+6 }
 }))
 
 app.use(keycloak.middleware({ admin: '/callback', logout: '/logout' }))
