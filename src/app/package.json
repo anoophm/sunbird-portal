@@ -50,6 +50,7 @@
     "ext": "png,jpeg,js,ts,html,json,css,scss"
   },
   "scripts": {
+    "start": "DEBUG=express-session node server.js",
     "server": "gulp update:index:file && node server",
     "validate": "npm ls",
     "precommit": "lint-staged",
