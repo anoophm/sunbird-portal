@@ -51,7 +51,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: memoryStore,
-  // cookie: { maxAge: 3.6e+6 } // added to enable ttl for session store
+  // cookie: { maxAge: 3.6e+6 } // added to enable ttl for session store.
 }))
 
 app.use(keycloak.middleware({ admin: '/callback', logout: '/logout' }))
