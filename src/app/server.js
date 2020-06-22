@@ -170,7 +170,7 @@ function runApp() {
   fetchDefaultChannelDetails((channelError, channelRes, channelData) => {
     portal.server = app.listen(envHelper.PORTAL_PORT, () => {
       envHelper.defaultChannelId = _.get(channelData, 'result.response.content[0].hashTagId'); // needs to be added in envVariable file
-      logger.info({ msg: `app running on port ${envHelper.PORTAL_PORT}` })
+      logger.info({ msg: `app running on port ${envHelper.PORTAL_PORT}, env=${process.env.NODE_ENV}` })
     })
     portal.server.keepAliveTimeout = 60000 * 5;
   })
