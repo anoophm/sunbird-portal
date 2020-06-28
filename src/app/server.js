@@ -43,6 +43,7 @@ logger.init({
 logger.debug({ msg: `logger initialized with LEVEL= ${logLevel}` })
 
 const app = express()
+require('./routes/enrollmentRoute.js')(app) // learner api routes
 
 app.use(cookieParser())
 app.use(helmet())
