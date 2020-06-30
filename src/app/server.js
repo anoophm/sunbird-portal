@@ -43,10 +43,8 @@ logger.init({
 logger.debug({ msg: `logger initialized with LEVEL= ${logLevel}` })
 
 const app = express()
-// require('./routes/enrollmentRoute.js')(app) // learner api routes
 
-app.use(cookieParser())
-app.use(helmet())
+app.use(cookieParser());
 
 app.all([
   '/learner/*', '/content/*', '/user/*', '/merge/*', '/action/*', '/courseReports/*', '/course-reports/*', '/admin-reports/*',
@@ -60,6 +58,10 @@ app.all([
     store: memoryStore,
       // cookie: { maxAge: 3.6e+6 } // added to enable ttl for session store.
   }), keycloak.middleware({ admin: '/callback', logout: '/logout' }));
+
+require('./routes/enrollmentRoute.js')(app) // learner api routes
+
+app.use(helmet())
 
 app.all('/logoff', endSession, (req, res) => {
   res.cookie('connect.sid', '', { expires: new Date() }); res.redirect('/logout')
