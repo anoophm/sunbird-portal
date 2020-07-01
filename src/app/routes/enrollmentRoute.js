@@ -15,8 +15,9 @@ const sunbirdApiAuthToken = envHelper.PORTAL_API_AUTH_TOKEN
 const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
 const httpProxy = require('http-proxy');
+
 const proxyServerOption = {
-    secure: false,
+    secure: false, // to enable http -> https, for secure connection we need to add ssl certs to server options
     target: learnerURL, // set target
     agent: learnerURL.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
     headers: {
@@ -27,8 +28,11 @@ const proxyServerOption = {
 console.log(proxyServerOption);
 const proxyServer = httpProxy.createProxyServer(proxyServerOption);
 proxyServer.on('error', function (error, req, res, target) {
-    console.log('=======> error while proxy-ing request', error.message);
-    res.send("error");
+    res.status(500)
+    res.send({
+        code: error.code,
+        message: error.reason
+    });
 });
 proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
     proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
