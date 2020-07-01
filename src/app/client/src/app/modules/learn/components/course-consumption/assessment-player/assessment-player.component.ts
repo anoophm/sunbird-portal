@@ -6,7 +6,8 @@ import { TocCardType } from '@project-sunbird/common-consumption';
 import { UserService } from '@sunbird/core';
 import { AssessmentScoreService, CourseBatchService, CourseConsumptionService } from '@sunbird/learn';
 import { PublicPlayerService } from '@sunbird/public';
-import { ConfigService, ResourceService, ToasterService, NavigationHelperService } from '@sunbird/shared';
+import { ConfigService, ResourceService, ToasterService, NavigationHelperService,
+   ContentUtilsServiceService, ITelemetryShare } from '@sunbird/shared';
 import * as _ from 'lodash-es';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { first, map, takeUntil } from 'rxjs/operators';
@@ -44,6 +45,9 @@ export class AssessmentPlayerComponent implements OnInit, OnDestroy {
   telemetryContentImpression: IImpressionEventInput;
   telemetryPlayerPageImpression: IImpressionEventInput;
   telemetryCdata: Array<{}>;
+  shareLink: string;
+  telemetryShareData: Array<ITelemetryShare>;
+  shareLinkModal: boolean;
   isUnitCompleted = false;
 
   constructor(
@@ -58,8 +62,9 @@ export class AssessmentPlayerComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private assessmentScoreService: AssessmentScoreService,
     private navigationHelperService: NavigationHelperService,
+    private router: Router,
+    private contentUtilsServiceService: ContentUtilsServiceService,
     private telemetryService: TelemetryService,
-    private router: Router
   ) {
     this.playerOption = {
       showContentRating: true
@@ -459,5 +464,17 @@ export class AssessmentPlayerComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe.next();
     this.unsubscribe.complete();
+  }
+
+  onShareLink() {
+    this.shareLink = this.contentUtilsServiceService.getCourseModulePublicShareUrl(this.courseId, this.collectionId);
+    this.setTelemetryShareData(this.courseHierarchy);
+  }
+  setTelemetryShareData(param) {
+    this.telemetryShareData = [{
+      id: param.identifier,
+      type: param.contentType,
+      ver: param.pkgVersion ? param.pkgVersion.toString() : '1.0'
+    }];
   }
 }

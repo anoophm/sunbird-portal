@@ -1,12 +1,20 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild, OnDestroy } from '@angular/core';
-import { ResourceService, ToasterService } from '@sunbird/shared';
+import {
+  IUserData,
+  NavigationHelperService,
+  ResourceService,
+  ServerResponse,
+  ToasterService,
+  UtilService
+} from '@sunbird/shared';
 import { ProfileService } from './../../services';
 import { FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
 import * as _ from 'lodash-es';
-import { IInteractEventObject, IInteractEventEdata } from '@sunbird/telemetry';
-import { UserService, FormService, SearchService } from '@sunbird/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {IInteractEventObject, IInteractEventEdata, TelemetryService} from '@sunbird/telemetry';
+import {UserService, FormService, SearchService, TncService} from '@sunbird/core';
 import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import {Subject, Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-submit-teacher-details',
@@ -15,11 +23,10 @@ import { Subject } from 'rxjs';
 })
 export class SubmitTeacherDetailsComponent implements OnInit, OnDestroy {
 
-  @Output() close = new EventEmitter<any>();
-  @Output() showSuccessModal = new EventEmitter<any>();
-  @Input() userProfile: any;
-  @Input() formAction: string;
-  @ViewChild('userDetailsModal') userDetailsModal;
+  @ViewChild('modal') modal;
+  showSuccessModal = false;
+  userProfile: any;
+  formAction: string;
   public unsubscribe = new Subject<void>();
   allStates: any;
   allDistricts: any;
@@ -44,17 +51,71 @@ export class SubmitTeacherDetailsComponent implements OnInit, OnDestroy {
   udiseObj;
   teacherObj;
   schoolObj;
+  userSubscription: Subscription;
+  instance: string;
+  showTncPopup = false;
+  tncLatestVersion: any;
+  termsAndConditionLink: any;
 
   constructor(public resourceService: ResourceService, public toasterService: ToasterService,
-    public profileService: ProfileService, formBuilder: FormBuilder,
-    public userService: UserService, public formService: FormService,
-    public searchService: SearchService) {
+    public profileService: ProfileService, formBuilder: FormBuilder, private telemetryService: TelemetryService,
+    public userService: UserService, public formService: FormService, public router: Router,
+    public searchService: SearchService, private activatedRoute: ActivatedRoute,
+    public navigationhelperService: NavigationHelperService,
+    public tncService: TncService, public utilService: UtilService) {
     this.sbFormBuilder = formBuilder;
   }
 
   ngOnInit() {
+    this.instance = _.upperCase(this.resourceService.instance || 'SUNBIRD');
+    this.fetchTncData();
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    this.formAction = queryParams.formaction;
+    this.telemetryImpressionEvent();
+    this.userSubscription = this.userService.userData$.subscribe((user: IUserData) => {
+      if (user.userProfile) {
+        this.userProfile = user.userProfile;
+        this.setFormDetails();
+      }
+    });
     this.setTelemetryData();
-    this.setFormDetails();
+  }
+
+  fetchTncData() {
+    this.tncService.getTncConfig().subscribe((data: ServerResponse) => {
+        const response = _.get(data, 'result.response.value');
+        if (response) {
+          try {
+            const tncConfig = this.utilService.parseJson(response);
+            this.tncLatestVersion = _.get(tncConfig, 'latestVersion') || {};
+            this.termsAndConditionLink = tncConfig[this.tncLatestVersion].url;
+          } catch (e) {
+            this.toasterService.error(_.get(this.resourceService, 'messages.fmsg.m0004'));
+          }
+        }
+      }, (err) => {
+        this.toasterService.error(_.get(this.resourceService, 'messages.fmsg.m0004'));
+      }
+    );
+  }
+
+  showAndHidePopup(mode: boolean) {
+    this.showTncPopup = mode;
+  }
+
+  telemetryImpressionEvent() {
+    this.telemetryService.impression({
+      context: {
+        env: this.activatedRoute.snapshot.data.telemetry.env
+      },
+      edata: {
+        type: this.activatedRoute.snapshot.data.telemetry.type,
+        subtype: this.formAction,
+        pageid: this.activatedRoute.snapshot.data.telemetry.pageid,
+        uri: this.activatedRoute.snapshot.data.telemetry.uri,
+        duration: this.navigationhelperService.getPageLoadTime()
+      }
+    });
   }
 
   setTelemetryData() {
@@ -226,6 +287,11 @@ export class SubmitTeacherDetailsComponent implements OnInit, OnDestroy {
     return updateInteractEdata;
   }
 
+  closeSuccessModal() {
+    this.modal.deny();
+    this.showSuccessModal = false;
+    this.router.navigate(['/profile']);
+  }
   isStateChanged() {
     let isStateChanged = false;
     _.forEach(_.get(this.userProfile, 'userLocations'), (location) => {
@@ -301,10 +367,14 @@ export class SubmitTeacherDetailsComponent implements OnInit, OnDestroy {
 
   updateProfile(data) {
     this.profileService.updateProfile(data).subscribe(res => {
-      this.closeModal();
-      this.showSuccessModal.emit();
       if (this.formAction === 'update') {
         this.toasterService.success(this.resourceService.messages.smsg.m0037);
+        this.closeModal();
+      } else {
+        if (_.get(this.userDetailsForm, 'value.tnc')) {
+          this.logAuditEvent();
+        }
+        this.showSuccessModal = true;
       }
     }, err => {
         this.closeModal();
@@ -313,14 +383,26 @@ export class SubmitTeacherDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  logAuditEvent() {
+    this.telemetryService.audit({
+      context: {
+        env: this.activatedRoute.snapshot.data.telemetry.env,
+        cdata: [{id: 'teacher-self-declaration', type: 'FromPage',}]
+      },
+      object: {id: 'data_sharing', type: 'TnC', ver: this.tncLatestVersion},
+      edata: {state: 'Updated', props: [], prevstate: '', type: 'tnc-data-sharing'}
+    });
+  }
+
   closeModal() {
-    this.userDetailsModal.deny();
-    this.close.emit();
+    this.router.navigate(['/profile']);
   }
 
   ngOnDestroy() {
     this.unsubscribe.next();
     this.unsubscribe.complete();
-    this.userDetailsModal.deny();
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 }

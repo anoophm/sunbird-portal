@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { SuiModule } from 'ng2-semantic-ui';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TelemetryModule } from '@sunbird/telemetry';
+import {TelemetryModule, TelemetryService} from '@sunbird/telemetry';
 import { SubmitTeacherDetailsComponent } from './submit-teacher-details.component';
 import {
   ResourceService,
@@ -18,15 +18,28 @@ import { DeviceDetectorService } from 'ngx-device-detector';
 import { RouterTestingModule } from '@angular/router/testing';
 import { mockRes } from './submit-teacher-details.component.spec.data';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { CoreModule, FormService, SearchService } from '@sunbird/core';
+import {CoreModule, FormService, SearchService, TncService, UserService} from '@sunbird/core';
 import { throwError as observableThrowError, of as observableOf } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { configureTestSuite } from '@sunbird/test-util';
+import { Router, ActivatedRoute } from '@angular/router';
+import {SignUpComponentMockData} from "../../../../modules/public/module/signup/components/signup/signup.component.spec.data";
 
 describe('SubmitTeacherDetailsComponent', () => {
   let component: SubmitTeacherDetailsComponent;
   let fixture: ComponentFixture<SubmitTeacherDetailsComponent>;
   let configService;
+
+  const fakeActivatedRoute = {
+    snapshot: {
+      data: {
+        telemetry: {
+          env: 'profile', pageid: 'teacher-declaration', type: 'view',
+          uri: '/profile/teacher-declaration',
+        }
+      }, queryParams: {}
+    }
+  };
 
   const resourceBundle = {
     'messages': {
@@ -69,7 +82,8 @@ describe('SubmitTeacherDetailsComponent', () => {
         RouterTestingModule,
         SharedModule.forRoot()],
       declarations: [SubmitTeacherDetailsComponent],
-      providers: [{ provide: ResourceService, useValue: resourceBundle },
+      providers: [{provide: ResourceService, useValue: resourceBundle}, UserService,
+        {provide: ActivatedRoute, useValue: fakeActivatedRoute}, TelemetryService,
         ToasterService, ProfileService, ConfigService, CacheService, BrowserCacheTtlService, FormService, SearchService,
         NavigationHelperService, DeviceDetectorService],
       schemas: [NO_ERRORS_SCHEMA]
@@ -96,10 +110,15 @@ describe('SubmitTeacherDetailsComponent', () => {
   });
 
   it('should call ng on init', () => {
+    const userService = TestBed.get(UserService);
+    const telemetryService = TestBed.get(TelemetryService);
+    spyOn(telemetryService, 'impression');
     spyOn(component, 'setTelemetryData');
     spyOn(component, 'setFormDetails');
     spyOn(component, 'initializeFormFields');
+    userService._userData$.next({err: null, userProfile: {}});
     component.ngOnInit();
+    expect(telemetryService.impression).toHaveBeenCalled();
     expect(component.setTelemetryData).toHaveBeenCalled();
     expect(component.setFormDetails).toHaveBeenCalled();
   });
@@ -228,6 +247,42 @@ describe('SubmitTeacherDetailsComponent', () => {
     expect(data).toBe(false);
   });
 
+  it('should fetch tnc configuration', () => {
+    const tncService = TestBed.get(TncService);
+    spyOn(tncService, 'getTncConfig').and.returnValue(observableOf(mockRes.tncConfig));
+    component.fetchTncData();
+    expect(component.tncLatestVersion).toEqual('v4');
+    expect(component.termsAndConditionLink).toEqual('http://test.com/tnc.html');
+  });
+
+  it('should not fetch tnc configuration and throw error', () => {
+    const tncService = TestBed.get(TncService);
+    const toasterService = TestBed.get(ToasterService);
+    spyOn(toasterService, 'error').and.callThrough();
+    spyOn(tncService, 'getTncConfig').and.returnValue(observableThrowError(mockRes.tncConfig));
+    component.fetchTncData();
+    expect(toasterService.error).toHaveBeenCalledWith(resourceBundle.messages.fmsg.m0004);
+  });
+
+  it('should fetch tnc configuration and throw error as cannot parse data', () => {
+    const tncService = TestBed.get(TncService);
+    spyOn(tncService, 'getTncConfig').and.returnValue(observableOf(mockRes.tncConfigIncorrectData));
+    const toasterService = TestBed.get(ToasterService);
+    spyOn(toasterService, 'error').and.callThrough();
+    component.fetchTncData();
+    expect(toasterService.error).toHaveBeenCalledWith(resourceBundle.messages.fmsg.m0004);
+  });
+
+  it('should show tnc popup if given mode is true', () => {
+    component.showAndHidePopup(true);
+    expect(component.showTncPopup).toBe(true);
+  });
+
+  it('should not show tnc popup if given mode is false', () => {
+    component.showAndHidePopup(false);
+    expect(component.showTncPopup).toBe(false);
+  });
+
   it('should return add operation as form action is submit', () => {
     component.formAction = 'submit';
     const data = component.getOperation('declared-school-name', 'tp', '2222');
@@ -255,5 +310,4 @@ describe('SubmitTeacherDetailsComponent', () => {
     const data = component.getOperation('declared-school-name', 'tp', '2222');
     expect(data).toBe('edit');
   });
-  
 });
