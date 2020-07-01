@@ -12,36 +12,73 @@ const reqDataLimitOfContentUpload = '50mb'
 const proxyUtils = require('../proxy/proxyUtils.js')
 const logger = require('sb_logger_util_v2')
 const sunbirdApiAuthToken = envHelper.PORTAL_API_AUTH_TOKEN
-
+const httpAgent = new http.Agent({ keepAlive: true });
+const httpsAgent = new https.Agent({ keepAlive: true });
+const httpProxy = require('http-proxy');
+const proxyServerOption = {
+    secure: false,
+    target: learnerURL, // set target
+    agent: learnerURL.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
+    headers: {
+        'Authorization': 'Bearer ' + sunbirdApiAuthToken
+    }, // add additional headers
+    selfHandleResponse: true, // enables override response from proxy server
+}
+console.log(proxyServerOption);
+const proxyServer = httpProxy.createProxyServer(proxyServerOption);
+proxyServer.on('error', function (error, req, res, target) {
+    console.log('=======> error while proxy-ing request', error.message);
+    res.send("error");
+});
+proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
+    proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
+});
+proxyServer.on('proxyRes', function (proxyRes, req, res) {
+    console.log(proxyRes.statusCode);
+    let chunks = [];
+    proxyRes.on("data", (chunk) => chunks.push(chunk));
+    proxyRes.on("end", function () {
+        let body = Buffer.concat(chunks);
+        console.log('got request from proxy server', body.toString());
+        res.end(body.toString());
+    });
+});
 module.exports = app => {
 
-    // app.all('/learner/course/v1/user/enrollment/list/:userId', // without any middleware
-    //     proxy(learnerURL, { proxyReqPathResolver: req => req.originalUrl.replace('learner', 'api') }));
+    app.all('/learner/course/v1/user/enrollment/list/:userId', (orgReq, orgRes) => {
+        orgReq.url = `${orgReq.originalUrl.replace('/learner/', '')}`;
+        console.log('originalUrl', orgReq.url);
+        proxyServer.web(orgReq, orgRes);
+    })
 
-    // app.all('/learner/course/v1/user/enrollment/list/:userId', // with all middleware and server middleware also added
-    //     healthService.checkDependantServiceHealth(['LEARNER', 'CASSANDRA']),
-    //     whitelistUrls.isWhitelistUrl(),
-    //     permissionsHelper.checkPermission(),
-    //     proxy(learnerURL, { proxyReqPathResolver: req => req.originalUrl.replace('learner', 'api') }));
+    app.all('/learner/course/v1/user/enrollment/list/:userId', // without any middleware
+        proxy(learnerURL, { proxyReqPathResolver: req => req.originalUrl.replace('learner', 'api') }));
 
-    // app.all('/learner/course/v1/user/enrollment/list/:userId', // with all middleware and server middleware and proxy methods
-    //     healthService.checkDependantServiceHealth(['LEARNER', 'CASSANDRA']),
-    //     whitelistUrls.isWhitelistUrl(),
-    //     permissionsHelper.checkPermission(),
-    //     proxy(learnerURL, { proxyReqPathResolver: req => req.originalUrl.replace('learner', 'api'),
-    //         limit: reqDataLimitOfContentUpload,
-    //         proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
-    //         userResDecorator: (proxyRes, proxyResData, req, res) => {
-    //             try {
-    //                 const data = JSON.parse(proxyResData.toString('utf8'));
-    //                 if (req.method === 'GET' && proxyRes.statusCode === 404 && (typeof data.message === 'string' && data.message.toLowerCase() === 'API not found with these values'.toLowerCase())) res.redirect('/')
-    //                 else return proxyUtils.handleSessionExpiry(proxyRes, proxyResData, req, res, data);
-    //             } catch (err) {
-    //                 logger.error({ msg: 'content api user res decorator json parse error:', proxyResData, error: JSON.stringify(err) })
-    //                 return proxyUtils.handleSessionExpiry(proxyRes, proxyResData, req, res);
-    //             }
-    //         }
-    //     }));
+    app.all('/learner/course/v1/user/enrollment/list/:userId', // with all middleware and server middleware also added
+        healthService.checkDependantServiceHealth(['LEARNER', 'CASSANDRA']),
+        whitelistUrls.isWhitelistUrl(),
+        permissionsHelper.checkPermission(),
+        proxy(learnerURL, { proxyReqPathResolver: req => req.originalUrl.replace('learner', 'api') }));
+
+    app.all('/learner/course/v1/user/enrollment/list/:userId', // with all middleware and server middleware and proxy methods
+        healthService.checkDependantServiceHealth(['LEARNER', 'CASSANDRA']),
+        whitelistUrls.isWhitelistUrl(),
+        permissionsHelper.checkPermission(),
+        proxy(learnerURL, {
+            proxyReqPathResolver: req => req.originalUrl.replace('learner', 'api'),
+            limit: reqDataLimitOfContentUpload,
+            proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+            userResDecorator: (proxyRes, proxyResData, req, res) => {
+                try {
+                    const data = JSON.parse(proxyResData.toString('utf8'));
+                    if (req.method === 'GET' && proxyRes.statusCode === 404 && (typeof data.message === 'string' && data.message.toLowerCase() === 'API not found with these values'.toLowerCase())) res.redirect('/')
+                    else return proxyUtils.handleSessionExpiry(proxyRes, proxyResData, req, res, data);
+                } catch (err) {
+                    logger.error({ msg: 'content api user res decorator json parse error:', proxyResData, error: JSON.stringify(err) })
+                    return proxyUtils.handleSessionExpiry(proxyRes, proxyResData, req, res);
+                }
+            }
+        }));
 
     app.all('/learner/course/v1/user/enrollment/list/:userId', (req, res) => { // enabling keep alive
         delete req.headers['host'];
