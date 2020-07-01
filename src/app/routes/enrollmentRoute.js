@@ -5,8 +5,6 @@ const _ = require('lodash');
 const request = require("request");
 const http = require('http');
 const https = require('https');
-const httpsAgent = new https.Agent({ keepAlive: true });
-const httpAgent = new http.Agent({ keepAlive: true });
 const healthService = require('../helpers/healthCheckService.js')
 const whitelistUrls = require('../helpers/whitellistUrls.js')
 const permissionsHelper = require('../helpers/permissionsHelper.js')
@@ -53,7 +51,7 @@ module.exports = app => {
 
         const options = {
             method: req.method,
-            agent: learnerURL.startsWith('https:') ? httpsAgent : httpAgent,
+            forever: true,
             url: `${learnerURL}${req.originalUrl.replace('/learner/', '')}`,
             headers: req.headers
         };
