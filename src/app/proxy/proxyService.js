@@ -12,7 +12,7 @@ module.exports = function(target) {
     const proxyServerOption = {
         secure: false, // to enable http -> https, for secure connection we need to add ssl certs to server options
         target: target, // set target
-        // agent: target.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
+        agent: target.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
         headers: {
             'Authorization': 'Bearer ' + sunbirdApiAuthToken
         }, // add additional headers
