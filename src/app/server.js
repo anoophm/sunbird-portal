@@ -59,7 +59,7 @@ app.all([
       // cookie: { maxAge: 3.6e+6 } // added to enable ttl for session store.
   }), keycloak.middleware({ admin: '/callback', logout: '/logout' }));
 
-require('./routes/enrollmentRoute.js')(app) // learner api routes
+// require('./routes/enrollmentRoute.js')(app) // learner api routes
 
 
 app.all('/logoff', endSession, (req, res) => {

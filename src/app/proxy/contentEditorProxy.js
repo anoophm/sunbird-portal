@@ -10,6 +10,7 @@ const contentServiceBaseUrl = envHelper.CONTENT_URL
 const reqDataLimitOfContentUpload = '30mb'
 const telemetryHelper = require('../helpers/telemetryHelper')
 const learnerURL = envHelper.LEARNER_URL
+const proxyServer = require('./proxyService')(contentProxyUrl);
 
 module.exports = function (app) {
 
@@ -130,13 +131,25 @@ module.exports = function (app) {
       userResDecorator: userResDecorator
   }))
 
-  app.use('/action/*', permissionsHelper.checkPermission(), proxy(contentProxyUrl, {
-    preserveHostHdr: true,
-    limit: reqDataLimitOfContentUpload,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
-    proxyReqPathResolver: proxyReqPathResolverMethod,
-    userResDecorator: userResDecorator
-  }))
+  // app.use('/action/*', (req, res, next) => {
+  //   console.log("Got request for ", req.originalUrl);
+  //   next();
+  // }, permissionsHelper.checkPermission(), proxy(contentProxyUrl, {
+  //   preserveHostHdr: true,
+  //   limit: reqDataLimitOfContentUpload,
+  //   proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+  //   proxyReqPathResolver: proxyReqPathResolverMethod,
+  //   userResDecorator: userResDecorator
+  // }))
+
+  app.use('/action/*', (req, res, next) => {
+    console.log("Got request for ", req.originalUrl);
+    next();
+  }, permissionsHelper.checkPermission(), (orgReq, orgRes) => {
+    orgReq.url = orgReq.originalUrl;
+    console.log('originalUrl', orgReq.url);
+    proxyServer.web(orgReq, orgRes);
+})
 
   app.use('/v1/url/fetchmeta', proxy(contentProxyUrl, {
     proxyReqPathResolver: proxyReqPathResolverMethod

@@ -14,8 +14,8 @@ const logger = require('sb_logger_util_v2')
 const sunbirdApiAuthToken = envHelper.PORTAL_API_AUTH_TOKEN
 const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
-const httpProxy = require('http-proxy');
 
+const httpProxy = require('http-proxy');
 const proxyServerOption = {
     secure: false, // to enable http -> https, for secure connection we need to add ssl certs to server options
     target: learnerURL, // set target
@@ -28,7 +28,7 @@ const proxyServerOption = {
 console.log(proxyServerOption);
 const proxyServer = httpProxy.createProxyServer(proxyServerOption);
 proxyServer.on('error', function (error, req, res, target) {
-    res.status(500)
+    res.status(500);
     res.send({
         code: error.code,
         message: error.reason
@@ -38,11 +38,17 @@ proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
     proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
 });
 proxyServer.on('proxyRes', function (proxyRes, req, res) {
+    if(proxyRes.statusCode <= 399){
+        console.log('status code is less than 399 pipe out proxy response to caller', proxyRes.headers);
+        res.set(proxyRes.headers)
+        return proxyRes.pipe(res);
+    }
     console.log(proxyRes.statusCode);
     let chunks = [];
     proxyRes.on("data", (chunk) => chunks.push(chunk));
     proxyRes.on("end", function () {
         let body = Buffer.concat(chunks);
+        res.status(proxyRes.statusCode)
         console.log('got request from proxy server', body.toString());
         res.end(body.toString());
     });

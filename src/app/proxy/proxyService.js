@@ -1,0 +1,50 @@
+const http = require('http');
+const https = require('https');
+const httpAgent = new http.Agent({ keepAlive: true });
+const httpsAgent = new https.Agent({ keepAlive: true });
+const httpProxy = require('http-proxy');
+const _ = require('lodash');
+const envHelper = require('../helpers/environmentVariablesHelper.js')
+const sunbirdApiAuthToken = envHelper.PORTAL_API_AUTH_TOKEN
+
+
+module.exports = function(target) {
+    const proxyServerOption = {
+        secure: false, // to enable http -> https, for secure connection we need to add ssl certs to server options
+        target: target, // set target
+        agent: target.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
+        headers: {
+            'Authorization': 'Bearer ' + sunbirdApiAuthToken
+        }, // add additional headers
+        selfHandleResponse: true, // enables override response from proxy server
+    }
+    console.log(proxyServerOption);
+    const proxyServer = httpProxy.createProxyServer(proxyServerOption);
+    proxyServer.on('error', function (error, req, res, target) {
+        res.status(500);
+        res.send({
+            code: error.code,
+            message: error.reason
+        });
+    });
+    proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
+        proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
+    });
+    proxyServer.on('proxyRes', function (proxyRes, req, res) {
+        if(proxyRes.statusCode <= 399){
+            console.log('status code is less than 399 pipe out proxy response to caller');
+            res.set(proxyRes.headers)
+            return proxyRes.pipe(res);
+        }
+        console.log(proxyRes.statusCode);
+        let chunks = [];
+        proxyRes.on("data", (chunk) => chunks.push(chunk));
+        proxyRes.on("end", function () {
+            let body = Buffer.concat(chunks);
+            res.status(proxyRes.statusCode)
+            console.log('got request from proxy server', body.toString());
+            res.end(body.toString());
+        });
+    });
+    return proxyServer
+}
