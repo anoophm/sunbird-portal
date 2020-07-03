@@ -28,7 +28,9 @@ module.exports = function(target) {
         });
     });
     proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
-        proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
+        if(_.get(req, 'kauth.grant.access_token.token')){
+            proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
+        }
     });
     proxyServer.on('proxyRes', function (proxyRes, req, res) {
         if(proxyRes.statusCode <= 399){
