@@ -166,7 +166,7 @@ module.exports = function (app) {
     const options = {
         method: orgReq.method,
         forever: true,
-        url: `${contentProxyUrl}/${orgReq.originalUrl}`,
+        url: `${contentProxyUrl}${orgReq.originalUrl}`,
         headers: orgReq.headers
     };
     console.log('action url to request', options.url);
