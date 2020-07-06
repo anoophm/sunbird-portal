@@ -142,14 +142,43 @@ module.exports = function (app) {
   //   userResDecorator: userResDecorator
   // }))
 
+  // app.use('/action/*', (req, res, next) => {
+  //   console.log("Got request for ", req.originalUrl);
+  //   next();
+  // }, permissionsHelper.checkPermission(), (orgReq, orgRes) => {
+  //   orgReq.url = orgReq.originalUrl;
+  //   console.log('originalUrl', orgReq.url);
+  //   proxyServer.web(orgReq, orgRes);
+  // })
+  const request = require("request");
+  const _ = require('lodash');
+  const sunbirdApiAuthToken = envHelper.PORTAL_API_AUTH_TOKEN
+
   app.use('/action/*', (req, res, next) => {
-    console.log("Got request for ", req.originalUrl);
+    console.log("Got request for user request package", req.originalUrl);
     next();
   }, permissionsHelper.checkPermission(), (orgReq, orgRes) => {
-    orgReq.url = orgReq.originalUrl;
-    console.log('originalUrl', orgReq.url);
-    proxyServer.web(orgReq, orgRes);
-})
+    delete orgReq.headers['host'];
+    delete orgReq.headers['connection'];
+    orgReq.headers['x-authenticated-user-token'] = _.get(orgReq, 'kauth.grant.access_token.token');
+    orgReq.headers.Authorization = 'Bearer ' + sunbirdApiAuthToken
+
+    const options = {
+        method: orgReq.method,
+        forever: true,
+        url: `${contentProxyUrl}/${orgReq.originalUrl}`,
+        headers: orgReq.headers
+    };
+    console.log('action url to request', options.url);
+    request(options, (error, response = {}, body = {}) => {
+        if (error) {
+          orgRes.status(500);
+            return orgRes.send({ message: error.reason, code: error.code, options });
+        };
+        orgRes.status(response.statusCode);
+        orgRes.send(body);
+    });
+  })
 
   app.use('/v1/url/fetchmeta', proxy(contentProxyUrl, {
     proxyReqPathResolver: proxyReqPathResolverMethod
