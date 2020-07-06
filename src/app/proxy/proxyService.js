@@ -12,11 +12,11 @@ module.exports = function(target) {
     const proxyServerOption = {
         secure: false, // to enable http -> https, for secure connection we need to add ssl certs to server options
         target: target, // set target
-        agent: target.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
+        // agent: target.startsWith('https') ? httpsAgent : httpAgent, // add custom agent with keep alive
         headers: {
             'Authorization': 'Bearer ' + sunbirdApiAuthToken
         }, // add additional headers
-        // selfHandleResponse: true, // enables override response from proxy server
+        selfHandleResponse: true, // enables override response from proxy server
     }
     console.log(proxyServerOption);
     const proxyServer = httpProxy.createProxyServer(proxyServerOption);
@@ -27,26 +27,25 @@ module.exports = function(target) {
             message: error.reason
         });
     });
-    // proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
-    //     if(_.get(req, 'kauth.grant.access_token.token')){
-    //         proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
-    //     }
-    // });
-    // proxyServer.on('proxyRes', function (proxyRes, req, res) {
-    //     if(proxyRes.statusCode <= 399){
-    //         console.log('status code is less than 399 pipe out proxy response to caller');
-    //         res.set(proxyRes.headers)
-    //         return proxyRes.pipe(res);
-    //     }
-    //     console.log(proxyRes.statusCode);
-    //     let chunks = [];
-    //     proxyRes.on("data", (chunk) => chunks.push(chunk));
-    //     proxyRes.on("end", function () {
-    //         let body = Buffer.concat(chunks);
-    //         res.status(proxyRes.statusCode)
-    //         console.log('got request from proxy server', body.toString());
-    //         res.end(body.toString());
-    //     });
-    // });
+    proxyServer.on('proxyReq', function (proxyReq, req, res, options) {
+        if(_.get(req, 'kauth.grant.access_token.token')){
+            proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
+        }
+    });
+    proxyServer.on('proxyRes', function (proxyRes, req, res) {
+        if(proxyRes.statusCode <= 399){
+            console.log('status code is less than 399 pipe out proxy response to caller');
+            res.set(proxyRes.headers)
+            return proxyRes.pipe(res);
+        }
+        let chunks = [];
+        proxyRes.on("data", (chunk) => chunks.push(chunk));
+        proxyRes.on("end", function () {
+            let body = Buffer.concat(chunks);
+            res.status(proxyRes.statusCode);
+            console.log('got request from proxy server', body.toString());
+            res.end(body.toString());
+        });
+    });
     return proxyServer
 }
