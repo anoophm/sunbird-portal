@@ -35,10 +35,11 @@ module.exports = function (target) {
         if (_.get(req, 'kauth.grant.access_token.token')) {
             proxyReq.setHeader('x-authenticated-user-token', _.get(req, 'kauth.grant.access_token.token'));
         }
+        proxyReq.setHeader('accept-encoding', req.headers['accept-encoding']);
     });
     proxyServer.on('proxyRes', function (proxyRes, req, res) {
         if (proxyRes.statusCode <= 399) {
-            console.log('status code is less than 399 pipe out proxy response to caller');
+            // console.log('status code is less than 399 pipe out proxy response to caller', proxyRes.headers);
             res.set(proxyRes.headers)
             return proxyRes.pipe(res);
         }
@@ -47,7 +48,7 @@ module.exports = function (target) {
         proxyRes.on("end", function () {
             let body = Buffer.concat(chunks);
             res.status(proxyRes.statusCode);
-            console.log('got request from proxy server', body.toString());
+            console.log('got error from upstream server', body.toString());
             res.end(body.toString());
         });
     });
