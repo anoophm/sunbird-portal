@@ -31,7 +31,7 @@ module.exports = app => {
         const options = {
             method: orgReq.method,
             forever: true,
-            url: `${contentProxyUrl}${orgReq.originalUrl}`.replace('/action/content/v3/read/', '/api/content/v1/read/'),
+            url: `${contentProxyUrl}${orgReq.originalUrl}`.replace('/action/content/v3/read/', '/v1/content/read/'),
             headers: orgReq.headers
         };
         console.log('action url to request', options);
@@ -51,7 +51,7 @@ module.exports = app => {
       console.log("Got request for ", req.originalUrl);
       next();
     }, (orgReq, orgRes) => {
-      orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/api/content/v1/read/') || '/headers';
+      orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') || '/headers';
       console.log('originalUrl', orgReq.url);
       proxyServer.web(orgReq, orgRes);
     });
