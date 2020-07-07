@@ -179,9 +179,13 @@ function runApp() {
   fetchDefaultChannelDetails((channelError, channelRes, channelData) => {
     portal.server = app.listen(envHelper.PORTAL_PORT, () => {
       envHelper.defaultChannelId = _.get(channelData, 'result.response.content[0].hashTagId'); // needs to be added in envVariable file
-      logger.info({ msg: `app running on port ${envHelper.PORTAL_PORT}, env=${process.env.NODE_ENV}` })
+      logger.info({ msg: `portal running on port ${envHelper.PORTAL_PORT}, env=${process.env.NODE_ENV} and pid: ${process.pid}` })
     })
-    portal.server.keepAliveTimeout = 60000 * 5;
+    portal.server.keepAliveTimeout = 1000 * 60 * 5;
+    portal.server.on('connection', (connection) => {
+      logger.info({ msg:`got new connection to serer running on ${process.pid}, total connection: ${portal.server._connections}`});
+    });
+    // setInterval(() => console.log(`connection: ${portal.server._connections}`), 1000);
   })
 }
 const fetchDefaultChannelDetails = (callback) => {
