@@ -19,37 +19,40 @@ const proxyServer = require('./proxyService')(contentProxyUrl); // "https://http
 
 module.exports = app => {
 
-    // app.use('/action/content/v3/read/*', (req, res, next) => {
-    //     console.log("Got request for user request package", req.originalUrl);
-    //     next();
-    //   }, (orgReq, orgRes) => {
-    //     delete orgReq.headers['host'];
-    //     delete orgReq.headers['connection'];
-    //     // delete orgReq.headers['accept-encoding'];
-    //     orgReq.headers['x-authenticated-user-token'] = _.get(orgReq, 'kauth.grant.access_token.token');
-    //     orgReq.headers.Authorization = 'Bearer ' + sunbirdApiAuthToken
-    //     const options = {
-    //         method: orgReq.method,
-    //         forever: true,
-    //         url: `${contentProxyUrl}${orgReq.originalUrl}`.replace('/action/content/v3/read/', '/v1/content/read/'),
-    //         headers: orgReq.headers
-    //     };
-    //     console.log('action url to request', options);
-    //     request(options, (error, response = {}, body = {}) => {
-    //         if (error) {
-    //           orgRes.status(500);
-    //           return orgRes.send({ message: error.reason, code: error.code, options });
-    //         };
-    //         console.log(response.headers);
-    //         // orgRes.setHeader("content-encoding", response.headers["content-encoding"]); orgRes.set(response.headers);
-    //         orgRes.status(response.statusCode);
-    //         orgRes.send(body);
-    //     });
-    //   })
+  // app.use('/action/content/v3/read/*', (req, res, next) => {
+  //     console.log("Got request for user request package", req.originalUrl);
+  //     next();
+  //   }, (orgReq, orgRes) => {
+  //     delete orgReq.headers['host'];
+  //     delete orgReq.headers['connection'];
+  //     // delete orgReq.headers['accept-encoding'];
+  //     orgReq.headers['x-authenticated-user-token'] = _.get(orgReq, 'kauth.grant.access_token.token');
+  //     orgReq.headers.Authorization = 'Bearer ' + sunbirdApiAuthToken
+  //     const options = {
+  //         method: orgReq.method,
+  //         forever: true,
+  //         url: `${contentProxyUrl}${orgReq.originalUrl}`.replace('/action/content/v3/read/', '/v1/content/read/'),
+  //         headers: orgReq.headers
+  //     };
+  //     console.log('action url to request', options);
+  //     request(options, (error, response = {}, body = {}) => {
+  //         if (error) {
+  //           orgRes.status(500);
+  //           return orgRes.send({ message: error.reason, code: error.code, options });
+  //         };
+  //         console.log(response.headers);
+  //         // orgRes.setHeader("content-encoding", response.headers["content-encoding"]); orgRes.set(response.headers);
+  //         orgRes.status(response.statusCode);
+  //         orgRes.send(body);
+  //     });
+  //   })
 
-    app.use('/action/content/v3/read/*', (orgReq, orgRes) => {
-      orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') || '/headers';
-      console.log('proxying with http-proxy package', orgReq.url);
-      proxyServer.web(orgReq, orgRes);
-    });
+  // app.use('/action/content/v3/read/*', (orgReq, orgRes) => {
+  //   orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') || '/headers';
+  //   console.log('proxying with http-proxy package', orgReq.url);
+  //   proxyServer.web(orgReq, orgRes);
+  // });
+
+  app.use('/action/content/v3/read/*', proxy(contentProxyUrl,
+    { proxyReqPathResolver: req => req.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') }))
 }
