@@ -184,9 +184,9 @@ function runApp() {
       logger.info({ msg: `portal running on port ${envHelper.PORTAL_PORT}, env=${process.env.NODE_ENV} and uuid: ${portal.uuid}` })
     })
     portal.server.keepAliveTimeout = 1000 * 60 * 5;
-    portal.server.on('connection', (connection) => {
-      logger.info({ msg:`got new connection to server running on uuid: ${portal.uuid}, total connection: ${portal.server._connections}`});
-    });
+    // portal.server.on('connection', (connection) => {
+    //   logger.info({ msg:`got new connection to server running on uuid: ${portal.uuid}, total connection: ${portal.server._connections}`});
+    // });
     // setInterval(() => console.log(`connection: ${portal.server._connections}`), 1000);
   })
 }
