@@ -1,10 +1,10 @@
 const http = require('http');
 const https = require('https');
 const httpAgent = new http.Agent({
-    keepAlive: true, maxSockets: 7500, // allow 100 at a time
+    keepAlive: true, maxSockets: 10000, // allow 100 at a time
 });
 const httpsAgent = new https.Agent({
-    keepAlive: true, maxSockets: 7500, // allow 100 at a time
+    keepAlive: true, maxSockets: 10000, // allow 100 at a time
 });
 const httpProxy = require('http-proxy');
 const _ = require('lodash');
