@@ -188,6 +188,7 @@ function runApp() {
     //   logger.info({ msg:`got new connection to server running on uuid: ${portal.uuid}, total connection: ${portal.server._connections}`});
     // });
     // setInterval(() => console.log(`connection: ${portal.server._connections}`), 1000);
+    global.portal = portal
   })
 }
 const fetchDefaultChannelDetails = (callback) => {

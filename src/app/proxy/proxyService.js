@@ -43,13 +43,13 @@ module.exports = function (target) {
         const {defaultPort, requests, sockets, freeSockets, maxSockets, maxFreeSockets} = target.startsWith('https') ? httpsAgent : httpAgent;
         // logger.info(`${this.server} connections open`, { maxSockets, maxFreeSockets});
         Object.keys(sockets).forEach(key => {
-            logger.info({message: global.portal.uuid + ` connection count ${portal.server._connections} and ` + ' sockets in use for: ' + key + ' is ' + sockets[key].length});
+            logger.info({message: global.portal.uuid + ` connection count ${global.portal.server._connections} and ` + ' sockets in use for: ' + key + ' is ' + sockets[key].length});
         })
         Object.keys(freeSockets).forEach(key => {
-            logger.info({message: global.portal.uuid + ` connection count ${portal.server._connections} and ` + ' freeSockets in use for: ' + key + ' is ' + freeSockets[key].length});
+            logger.info({message: global.portal.uuid + ` connection count ${global.portal.server._connections} and ` + ' freeSockets in use for: ' + key + ' is ' + freeSockets[key].length});
         })
         Object.keys(requests).forEach(key => {
-            logger.info({message: global.portal.uuid + ` connection count ${portal.server._connections} and ` + ' requests in queue for: ' + key + ' is ' + requests[key].length});
+            logger.info({message: global.portal.uuid + ` connection count ${global.portal.server._connections} and ` + ' requests in queue for: ' + key + ' is ' + requests[key].length});
         })
         if (proxyRes.statusCode <= 399) {
             // console.log('status code is less than 399 pipe out proxy response to caller', proxyRes.headers);
