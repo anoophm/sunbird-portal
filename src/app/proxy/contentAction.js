@@ -47,12 +47,12 @@ module.exports = app => {
   //     });
   //   })
 
-  // app.use('/action/content/v3/read/*', (orgReq, orgRes) => {
-  //   orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') || '/headers';
-  //   console.log('proxying with http-proxy package', orgReq.url);
-  //   proxyServer.web(orgReq, orgRes);
-  // });
+  app.use('/action/content/v3/read/*', (orgReq, orgRes) => {
+    orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/');
+    // console.log('proxying with http-proxy package', orgReq.url);
+    proxyServer.web(orgReq, orgRes);
+  });
 
-  app.use('/action/content/v3/read/*', proxy(contentProxyUrl,
-    { proxyReqPathResolver: req => req.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') }))
+  // app.use('/action/content/v3/read/*', proxy(contentProxyUrl,
+  //   { proxyReqPathResolver: req => req.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') }))
 }

@@ -1,11 +1,14 @@
 const http = require('http');
 const https = require('https');
 const httpAgent = new http.Agent({
-    keepAlive: true, maxSockets: 10000, // allow 100 at a time
+    keepAlive: true,
+    // maxSockets: 10000, // allow 100 at a time
 });
 const httpsAgent = new https.Agent({
-    keepAlive: true, maxSockets: 10000, // allow 100 at a time
+    keepAlive: true,
+    // maxSockets: 10000, // allow 100 at a time
 });
+const logger = require('sb_logger_util_v2');
 const httpProxy = require('http-proxy');
 const _ = require('lodash');
 const envHelper = require('../helpers/environmentVariablesHelper.js')
@@ -22,7 +25,6 @@ module.exports = function (target) {
         }, // add additional headers
         selfHandleResponse: true, // enables override response from proxy server
     }
-    console.log(proxyServerOption);
     const proxyServer = httpProxy.createProxyServer(proxyServerOption);
     proxyServer.on('error', function (error, req, res, target) {
         res.status(500);
@@ -38,6 +40,17 @@ module.exports = function (target) {
         proxyReq.setHeader('accept-encoding', req.headers['accept-encoding']);
     });
     proxyServer.on('proxyRes', function (proxyRes, req, res) {
+        const {defaultPort, requests, sockets, freeSockets, maxSockets, maxFreeSockets} = target.startsWith('https') ? httpsAgent : httpAgent;
+        // logger.info(`${this.server} connections open`, { maxSockets, maxFreeSockets});
+        Object.keys(sockets).forEach(key => {
+            logger.info({message: global.portal.uuid + ` connection count ${portal.server._connections} and ` + ' sockets in use for: ' + key + ' is ' + sockets[key].length});
+        })
+        Object.keys(freeSockets).forEach(key => {
+            logger.info({message: global.portal.uuid + ` connection count ${portal.server._connections} and ` + ' freeSockets in use for: ' + key + ' is ' + freeSockets[key].length});
+        })
+        Object.keys(requests).forEach(key => {
+            logger.info({message: global.portal.uuid + ` connection count ${portal.server._connections} and ` + ' requests in queue for: ' + key + ' is ' + requests[key].length});
+        })
         if (proxyRes.statusCode <= 399) {
             // console.log('status code is less than 399 pipe out proxy response to caller', proxyRes.headers);
             res.set(proxyRes.headers)
