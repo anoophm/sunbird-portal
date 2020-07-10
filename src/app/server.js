@@ -43,7 +43,6 @@ logger.init({
 logger.debug({ msg: `logger initialized with LEVEL= ${logLevel}` })
 
 const app = express()
-require('./proxy/contentAction.js')(app, keycloak) // proxy api routes
 app.use(cookieParser());
 app.use(helmet())
 
@@ -81,6 +80,7 @@ app.get('/endSession', endSession, (req, res) => {
   res.status(200)
   res.end()
 });
+require('./proxy/contentAction.js')(app, keycloak) // proxy api routes
 
 // device routes
 require('./routes/deviceRoutes.js')(app);
