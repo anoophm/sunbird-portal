@@ -46,13 +46,36 @@ module.exports = app => {
   //         orgRes.send(body);
   //     });
   //   })
+  app.use('/action/content/v3/read/*', proxy(contentProxyUrl, {
+    preserveHostHdr: true,
+    limit: reqDataLimitOfContentUpload,
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
+    proxyReqPathResolver: req => {
+      console.log('action content read url', contentProxyUrl + req.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/'));
+      return req.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/')
+    },
+    userResDecorator: userResDecorator
+  }))
 
-  app.use('/action/content/v3/read/*', (orgReq, orgRes) => {
-    orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/');
-    // console.log('proxying with http-proxy package', orgReq.url);
-    proxyServer.web(orgReq, orgRes);
-  });
+  // app.get('/health', proxy('http://localhost:1001', {
+  //   proxyReqOptDecorator: proxyUtils.decorateRequestHeaders()
+  // }));
+  // app.use('/action/content/v3/read/*', (orgReq, orgRes) => {
+  //   orgReq.url = orgReq.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/');
+  //   // console.log('proxying with http-proxy package', orgReq.url);
+  //   proxyServer.web(orgReq, orgRes);
+  // });
 
   // app.use('/action/content/v3/read/*', proxy(contentProxyUrl,
   //   { proxyReqPathResolver: req => req.originalUrl.replace('/action/content/v3/read/', '/v1/content/read/') }))
+}
+const userResDecorator = (proxyRes, proxyResData, req, res) => {
+  try {
+    const data = JSON.parse(proxyResData.toString('utf8'));
+    if (req.method === 'GET' && proxyRes.statusCode === 404 && (typeof data.message === 'string' && data.message.toLowerCase() === 'API not found with these values'.toLowerCase())) res.redirect('/')
+    else return proxyUtils.handleSessionExpiry(proxyRes, proxyResData, req, res, data);
+  } catch (err) {
+    console.log('content api user res decorator json parse error', proxyResData, proxyResData.toString('utf8'));
+    return proxyUtils.handleSessionExpiry(proxyRes, proxyResData, req, res);
+  }
 }
