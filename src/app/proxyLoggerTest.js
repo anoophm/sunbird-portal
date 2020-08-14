@@ -1,6 +1,6 @@
 const { ProxyLogger } = require("@project-sunbird/logger/decorator");
 async function echo(req){
-    return req.body ? req.body : req.originalUrl;
+    return req.body;
 }
 
 module.exports = { echo }
