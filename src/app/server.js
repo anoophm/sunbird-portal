@@ -90,6 +90,32 @@ app.use(['/user/*', '/merge/*', '/device/*', '/google/*', '/v2/user/*', '/v1/sso
   return tokensList.join(' ');
 })); // , { skip: (req, res) => !(logger.level === "debug") })); // skip logging if logger level is not debug
 
+app.use(
+  ['/api/*', '/action/*'],
+  // ['/api/*', '/action/*', '/proxyLoggerLoadTest'], // test
+  morgan((tokens, req, res) => {
+  const tokensList = [
+    "reqId: " + req.get('X-Request-ID'),
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+  ];
+  if(logger.level === "debug"){ // add more info when log level is debug
+    tokensList.push(
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms',
+      "requestBody:", req.body ? JSON.stringify(req.body) : "empty"
+    )
+  }
+  return tokensList.join(' ');
+})); // , { skip: (req, res) => !(logger.level === "debug") })); // skip logging if logger level is not debug
+
+const { echo } = require('./proxyLoggerTest');
+app.all('/proxyLoggerLoadTest', bodyParser.json({ limit: '1mb' }), async (req, res, next) => {
+    const echData = await echo(req);
+    res.send(echData);
+});
+
 app.get('/enableDebugMode', (req, res, next) => {
   const logLevel = req.query.logLevel || "debug";
   const timeInterval = req.query.timeInterval ? parseInt(req.query.timeInterval) : 1000 * 60 * 10;
