@@ -2,10 +2,14 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { PublicCourseComponent, ExploreCourseComponent, PublicCoursePlayerComponent,
   PublicCourseConsumptionPageComponent } from './components';
-import {ViewAllComponent} from '@sunbird/shared-feature';
+import {ViewAllComponent} from '@sunbird/content-search';
 const routes: Routes = [
     {
       path: '', component: PublicCourseComponent, data: {
+        routeReuse: {
+          reuse: true,
+          path: 'explore-course'
+        },
         telemetry: {
           env: 'explore-course', pageid: 'explore-course', type: 'view', subtype: 'paginate'
         }
@@ -26,7 +30,8 @@ const routes: Routes = [
       path: ':pageNumber', component: ExploreCourseComponent, data: {
         telemetry: {
           env: 'explore-course', pageid: 'explore-course-search', type: 'view', subtype: 'paginate'
-        }
+        },
+        softConstraints: { badgeAssertions: 98, board: 99,  channel: 100 }
       }
     },
     {
@@ -37,7 +42,7 @@ const routes: Routes = [
           path: ':courseId', component: PublicCoursePlayerComponent,
           data: {
             telemetry: {
-              env: 'explore-course', pageid: 'explore-course-toc', type: 'view'
+              env: 'explore-course-toc', pageid: 'explore-course-toc', type: 'view'
             }
           },
         },

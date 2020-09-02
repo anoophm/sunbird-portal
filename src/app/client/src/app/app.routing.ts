@@ -1,7 +1,12 @@
+import { MY_GROUPS } from './modules/groups';
 import { NgModule } from '@angular/core';
 import { ErrorPageComponent, AuthGuard } from '@sunbird/core';
 import { RouterModule, Routes } from '@angular/router';
+
 const appRoutes: Routes = [
+  {
+    path: 'learn/course', loadChildren: 'app/modules/learn/course-consumption.module#CourseConsumptionModule'
+  },
   {
     path: 'learn', loadChildren: 'app/modules/learn/learn.module#LearnModule'
   },
@@ -13,15 +18,6 @@ const appRoutes: Routes = [
   },
   {
     path: 'workspace', loadChildren: 'app/modules/workspace/workspace.module#WorkspaceModule'
-  },
-  {
-    path: 'contribute', loadChildren: 'app/modules/program/program.module#ProgramModule'
-  },
-  // {
-  //   path: 'home', loadChildren: 'app/modules/home/home.module#HomeModule'
-  // },
-  {
-    path: 'announcement', loadChildren: 'app/modules/announcement/announcement.module#AnnouncementModule'
   },
   {
     path: 'org', loadChildren: 'app/modules/org-management/org-management.module#OrgManagementModule'
@@ -45,7 +41,13 @@ const appRoutes: Routes = [
     path: 'get', loadChildren: 'app/modules/dial-code-search/dial-code-search.module#DialCodeSearchModule'
   },
   {
+    path: 'manage', loadChildren: 'app/modules/manage/manage.module#ManageModule'
+  },
+  {
     path: '', loadChildren: 'app/modules/public/public.module#PublicModule'
+  },
+  {
+    path: MY_GROUPS, loadChildren: 'app/modules/groups/groups.module#GroupsModule'
   },
   {
     path: 'error', component: ErrorPageComponent

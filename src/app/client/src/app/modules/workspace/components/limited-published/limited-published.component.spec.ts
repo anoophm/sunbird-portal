@@ -1,6 +1,5 @@
 
 import {throwError as observableThrowError, of as observableOf,  Observable } from 'rxjs';
-import { DeleteComponent } from './../../../announcement/components/delete/delete.component';
 // Import NG testing module(s)
 import { async, ComponentFixture, TestBed, inject, tick, fakeAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -22,6 +21,7 @@ const testData = mockData.mockRes;
 import { TelemetryModule } from '@sunbird/telemetry';
 import { NgInviewModule } from 'angular-inport';
 import { CoreModule } from '@sunbird/core';
+import { configureTestSuite } from '@sunbird/test-util';
 
 describe('LimitedPublishedComponent', () => {
   let component: LimitedPublishedComponent;
@@ -63,6 +63,7 @@ describe('LimitedPublishedComponent', () => {
     },
     languageSelected$: observableOf({})
   };
+  configureTestSuite();
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [LimitedPublishedComponent],
@@ -120,7 +121,9 @@ describe('LimitedPublishedComponent', () => {
       'PracticeResource',
       'LearningOutcomeDefinition',
       'ExplanationResource',
-      'ExperientialResource'
+      'ExperientialResource',
+      'eTextBook',
+      'TVLesson'
     ],
     'objectType': 'Content'
     },

@@ -1,3 +1,8 @@
+<app-landing-section [noTitle]="true" [layoutConfiguration]="layoutConfiguration">
+
+</app-landing-section>
+
+<div [ngClass]="layoutConfiguration ? 'sbt-container relative9':''" >
 <div class="ui" [appTelemetryImpression]="telemetryImpression">
   <div class="twelve wide column px-0 sb-workspace-bg">
     <div class="ui container stackable grid m-0 sb-mid-container-min-height dashboard-body-scroll" *ngIf="!noResult">
@@ -10,7 +15,7 @@
             {{report.label || report.title}}</li>
         </ul>
       </div>
-      <div class="ten wide column sb-sideview-tab-container pl-40 pr-0 pt-72 pb-48" *ngIf="currentReport">
+      <div class="ten wide column sb-sideview-tab-container pl-40 pt-72 pb-48" *ngIf="currentReport">
         <h2 class="ui small header">
           {{currentReport?.title || currentReport?.label}}
         </h2>
@@ -30,26 +35,17 @@
                 [telemetryInteractEdata]="setTelemetryInteractEdata('download')" class="item" suiTabHeader="files"
                >{{resourceService?.frmelmnts?.lbl?.dashboard?.download}}</a>
 
-              <!-- <button type="button" *ngIf="currentReport?.downloadUrl"
-                class="sb-btn sb-btn-tertiary sb-btn-normal ml-auto mr-8" appTelemetryInteract
-                [telemetryInteractObject]="setTelemetryInteractObject(currentReport.id)"
-                [telemetryInteractEdata]="setTelemetryInteractEdata('report-download')" (click)="downloadCSV()"><i
-                  class="icon"></i> {{resourceService?.frmelmnts?.lbl?.downloadCsv}}</button>             -->
+               <button type="button" *ngIf="!isFileDataLoaded && currentReport?.downloadUrl"
+               class="sb-btn sb-btn-tertiary sb-btn-normal ml-auto mr-8" appTelemetryInteract
+               [telemetryInteractObject]="setTelemetryInteractObject(currentReport.id)"
+               [telemetryInteractEdata]="setTelemetryInteractEdata('report-download')" (click)="downloadCSV()"><i
+                 class="icon"></i> {{resourceService?.frmelmnts?.lbl?.downloadCsv}}</button>
             </div>
             <div class="ui bottom attached segment p-0 b-0 no-bg my-24" suiTabContent="files">
               <div class="sb-graph-section p-24 my-24">
-                <!-- <div *ngFor="let file of files; let i = index; let l = last;">
-                  <span>{{file.name}}</span>
-                  <span>
-                    <a type="button" class="ml-auto mr-8" appTelemetryInteract
-                      [telemetryInteractObject]="setTelemetryInteractObject(currentReport.id)"
-                      [telemetryInteractEdata]="setTelemetryInteractEdata('report-download')"
-                      (click)="downloadCSV(file.downloadUrl)"><i class="icon"></i> download file</a>
-                  </span>
-                </div> -->
-                <table *ngIf="isFileDataLoaded" id="downloadTable" class="sb-table sb-table-striped sb-table-sortable sb-table-fixed"
+                <table *ngIf="isFileDataLoaded" id="downloadTable" class="sb-table sb-table-striped sb-table-sortable sb-table-fixed sb-table-course-dashboard"
                 cellspacing="0">
-                <thead class="sb-table-header sb-table-thead-gray">
+                <thead>
                   <tr>
                     <th>
                       <div class="cursor-pointer">
@@ -59,6 +55,16 @@
                     <th>
                       <div class="cursor-pointer">
                         {{resourceService?.frmelmnts?.lbl?.dashboard?.description}}
+                      </div>
+                    </th>
+                    <th>
+                      <div class="cursor-pointer">
+                        {{resourceService?.frmelmnts?.lbl?.dashboard?.fileSize}}
+                      </div>
+                    </th>
+                    <th>
+                      <div class="cursor-pointer">
+                        {{resourceService?.frmelmnts?.lbl?.createdon}}
                       </div>
                     </th>
                     <th class="table-headerDashboard">
@@ -80,6 +86,18 @@
                       {{file.desc}}
                     </td>
                     <td *ngIf="!file.desc">
+                      --
+                    </td>
+                    <td *ngIf="file.size">
+                      {{file.size}}
+                    </td>
+                    <td *ngIf="!file.size">
+                      --
+                    </td>
+                    <td *ngIf="file.createdOn">
+                      {{file.createdOn}}
+                    </td>
+                    <td *ngIf="!file.createdOn">
                       --
                     </td>
                     <td >
@@ -128,4 +146,5 @@
       <app-no-result [data]="noResultMessage"></app-no-result>
     </div>
   </div>
+</div>
 </div>

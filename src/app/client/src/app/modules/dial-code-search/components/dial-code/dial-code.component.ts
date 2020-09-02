@@ -1,16 +1,14 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { combineLatest as observableCombineLatest, iif, of } from 'rxjs';
-import { ResourceService, ServerResponse, ToasterService, ConfigService, UtilService, NavigationHelperService } from '@sunbird/shared';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { combineLatest as observableCombineLatest, of } from 'rxjs';
+import { ResourceService, ToasterService, ConfigService, UtilService, NavigationHelperService, LayoutService} from '@sunbird/shared';
 import { Router, ActivatedRoute } from '@angular/router';
-import { SearchService, SearchParam, PlayerService, CoursesService, UserService } from '@sunbird/core';
+import { SearchService, PlayerService, CoursesService, UserService } from '@sunbird/core';
 import { PublicPlayerService } from '@sunbird/public';
 import * as _ from 'lodash-es';
-import { IInteractEventEdata, IImpressionEventInput, TelemetryService, TelemetryInteractDirective } from '@sunbird/telemetry';
-import { takeUntil, mergeMap, first, tap, retry, catchError, map, finalize, debounceTime } from 'rxjs/operators';
+import { IInteractEventEdata, IImpressionEventInput, TelemetryService } from '@sunbird/telemetry';
+import {mergeMap, tap, retry, catchError, map, finalize, debounceTime, takeUntil} from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import * as TreeModel from 'tree-model';
 import { DialCodeService } from '../../services/dial-code/dial-code.service';
-const treeModel = new TreeModel();
 
 @Component({
   selector: 'app-dial-code',
@@ -38,7 +36,7 @@ export class DialCodeComponent implements OnInit, OnDestroy {
   public searchResults: Array<any> = [];
   public unsubscribe$ = new Subject<void>();
   public telemetryCdata: Array<{}> = [];
-  public closeIntractEdata: IInteractEventEdata;
+  public backInteractEdata: IInteractEventEdata;
   public selectChapterTelemetryCdata: Array<{}> = [];
   public selectChapterInteractEdata: IInteractEventEdata;
   public showMobilePopup = false;
@@ -49,6 +47,7 @@ export class DialCodeComponent implements OnInit, OnDestroy {
   public showBatchInfo = false;
   public selectedCourseBatches: any;
   public singleContentRedirect = '';
+  public numberOfSections = new Array(this.configService.appConfig.DIAL_CODE.PAGE_LIMIT);
   showExportLoader = false;
   contentName: string;
   instance: string;
@@ -59,16 +58,22 @@ export class DialCodeComponent implements OnInit, OnDestroy {
   showSelectChapter = false;
   chapterName: string;
   dialContentId: string;
+  textbookList = [];
+  courseList = [];
+  isTextbookDetailsPage = false;
+  layoutConfiguration: any;
 
   constructor(public resourceService: ResourceService, public userService: UserService,
     public coursesService: CoursesService, public router: Router, public activatedRoute: ActivatedRoute,
     public searchService: SearchService, public toasterService: ToasterService, public configService: ConfigService,
     public utilService: UtilService, public navigationHelperService: NavigationHelperService,
     public playerService: PlayerService, public telemetryService: TelemetryService,
-    public publicPlayerService: PublicPlayerService, private dialCodeService: DialCodeService) {
+    public publicPlayerService: PublicPlayerService, private dialCodeService: DialCodeService,
+    public layoutService: LayoutService) {
   }
 
   ngOnInit() {
+    this.initLayout();
     observableCombineLatest(this.activatedRoute.params, this.activatedRoute.queryParams,
       (params, queryParams) => {
         return { ...params, ...queryParams };
@@ -80,11 +85,19 @@ export class DialCodeComponent implements OnInit, OnDestroy {
         const linkedContents = _.flatMap(_.values(res));
         const { constantData, metaData, dynamicFields } = this.configService.appConfig.GetPage;
         this.searchResults = this.utilService.getDataForCard(linkedContents, constantData, dynamicFields, metaData);
+        if (_.get(this.searchResults[0], 'contentType') === 'TextBook') {
+          sessionStorage.setItem('l1parent', this.searchResults[0].identifier);
+        }
         this.appendItems(0, this.itemsToLoad);
         if (this.searchResults.length === 1) {
           if (_.get(this.searchResults[0], 'metaData.mimeType') === 'application/vnd.ekstep.content-collection' ||
             !sessionStorage.getItem('singleContentRedirect')) {
             this.singleContentRedirect = this.searchResults[0]['name'];
+            if (this.searchResults[0].contentType.toLowerCase() !== 'course') {
+              this.getEvent({
+                data: this.searchResults[0]
+              });
+            }
           }
         }
         this.showLoader = false;
@@ -107,10 +120,20 @@ export class DialCodeComponent implements OnInit, OnDestroy {
       });
   }
 
+  initLayout() {
+    this.layoutConfiguration = this.layoutService.initlayoutConfig();
+    this.layoutService.switchableLayout().pipe(takeUntil(this.unsubscribe$)).subscribe(layoutConfig => {
+      if (layoutConfig != null) {
+        this.layoutConfiguration = layoutConfig.layout;
+      }
+    });
+  }
+
   private initialize = (params) => {
     EkTelemetry.config.batchsize = 2;
     this.isBrowse = Boolean(this.router.url.includes('browse'));
     this.dialSearchSource = _.get(params, 'source') || 'search';
+    this.isTextbookDetailsPage = !!_.get(params, 'textbook');
     this.itemsToDisplay = [];
     this.searchResults = [];
     this.dialCode = _.get(params, 'dialCode');
@@ -129,7 +152,7 @@ export class DialCodeComponent implements OnInit, OnDestroy {
           subtype: 'auto',
         });
       }),
-      mergeMap(param => this.dialCodeService.searchDialCode(_.get(param, 'dialCode'), this.isBrowse)
+      mergeMap(param => this.dialCodeService.searchDialCodeAssemble(_.get(param, 'dialCode'), this.isBrowse)
         .pipe(
           tap(value => {
             this.logInteractEvent({
@@ -162,7 +185,7 @@ export class DialCodeComponent implements OnInit, OnDestroy {
   }
   private processTextBook(params) {
     const textBookUnit = _.get(params, 'textbook');
-    const content = _.find(_.get(this.dialCodeService, 'dialCodeResult.content'), contentObj => {
+    const content = _.find(_.get(this.dialCodeService, 'dialCodeResult.contents'), contentObj => {
       return (_.get(contentObj, 'identifier') === textBookUnit);
     });
     if (content) {
@@ -189,10 +212,12 @@ export class DialCodeComponent implements OnInit, OnDestroy {
 
   appendItems(startIndex, endIndex) {
     this.itemsToDisplay.push(...this.searchResults.slice(startIndex, endIndex));
+    this.courseList = this.itemsToDisplay.filter(item => item.contentType.toLowerCase() === 'course');
+    this.textbookList = this.itemsToDisplay.filter(item => item.contentType.toLowerCase() !== 'course');
   }
 
   public playCourse({ section, data }) {
-    const { metaData } = data;
+    const metaData = data;
     if (this.userService.loggedIn) {
       this.coursesService.getEnrolledCourses().subscribe(() => {
         const { onGoingBatchCount, expiredBatchCount, openBatch, inviteOnlyBatch } =
@@ -234,7 +259,8 @@ export class DialCodeComponent implements OnInit, OnDestroy {
       }
     } else {
       this.router.navigate([this.redirectContentUrl, event.data.metaData.identifier],
-        { queryParams: { dialCode: this.dialCode, l1Parent: event.data.metaData.l1Parent } });
+        { queryParams: { dialCode: this.dialCode, l1Parent: sessionStorage.getItem('l1parent') || event.data.metaData.l1Parent },
+          state: { 'isSingleContent': this.searchResults.length > 1 ? false : true} });
     }
   }
 
@@ -257,6 +283,9 @@ export class DialCodeComponent implements OnInit, OnDestroy {
     this.telemetryImpression = Object.assign({}, this.telemetryImpression);
   }
   closeMobileAppPopup() {
+    if (localStorage) {
+      localStorage.setItem('showMobilePopUp', 'true');
+    }
     if (!this.isRedirectToDikshaApp) {
       this.telemetryService.interact(this.closeMobilePopupInteractData);
       (document.querySelector('.mobile-app-popup') as HTMLElement).style.bottom = '-999px';
@@ -287,8 +316,8 @@ export class DialCodeComponent implements OnInit, OnDestroy {
       }
     };
 
-    this.closeIntractEdata = {
-      id: 'dialpage-close',
+    this.backInteractEdata = {
+      id: 'dialpage-back',
       type: 'click',
       pageid: 'get-dial',
     };
@@ -345,7 +374,9 @@ export class DialCodeComponent implements OnInit, OnDestroy {
   }
   handleMobilePopupBanner() {
     setTimeout(() => {
-      this.showMobilePopup = true;
+      if (localStorage && !localStorage.getItem('showMobilePopUp')) {
+        this.showMobilePopup = true;
+      }
     }, 500);
   }
   updateCardData(downloadListdata) {
@@ -378,10 +409,25 @@ export class DialCodeComponent implements OnInit, OnDestroy {
     if (_.get(this.activatedRoute, 'snapshot.queryParams.textbook') && _.get(this.dialCodeService, 'dialCodeResult.count') > 1) {
       return this.router.navigate(['/get/dial', _.get(this.activatedRoute, 'snapshot.params.dialCode')]);
     }
+    const previousUrl = _.get(this.navigationHelperService.getPreviousUrl(), 'url') || '/get';
+    if (_.includes(previousUrl, 'play')) {
+      if (this.userService.loggedIn) {
+        this.router.navigate(['/resources']);
+      } else {
+        this.router.navigate(['/explore']);
+      }
+    }
+  }
+
+  goBack() {
+    /*istanbul ignore else */
+    if (_.get(this.activatedRoute, 'snapshot.queryParams.textbook') && _.get(this.dialCodeService, 'dialCodeResult.count') > 1) {
+      return this.router.navigate(['/get/dial', _.get(this.activatedRoute, 'snapshot.params.dialCode')]);
+    }
     if (this.userService.loggedIn) {
-      this.navigationHelperService.navigateToPreviousUrl('/resources');
+      this.router.navigate(['/resources']);
     } else {
-      this.navigationHelperService.navigateToPreviousUrl('/explore');
+      this.router.navigate(['/explore']);
     }
   }
   public redirectToDetailsPage(contentId) {

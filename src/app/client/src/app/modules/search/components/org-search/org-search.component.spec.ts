@@ -9,13 +9,13 @@ import {
 import { SearchService, UserService, LearnerService, ContentService } from '@sunbird/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IPagination } from '@sunbird/announcement';
 import * as _ from 'lodash-es';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { Response } from './org-search.component.spec.data';
 import { CoreModule } from '@sunbird/core';
 import { OrgSearchComponent } from './org-search.component';
 import { TelemetryModule } from '@sunbird/telemetry';
+import { configureTestSuite } from '@sunbird/test-util';
 
 describe('OrgSearchComponent', () => {
   let component: OrgSearchComponent;
@@ -50,6 +50,7 @@ describe('OrgSearchComponent', () => {
   class RouterStub {
     navigate = jasmine.createSpy('navigate');
   }
+  configureTestSuite();
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, TelemetryModule.forRoot(), SharedModule.forRoot(), RouterTestingModule, CoreModule],

@@ -1,7 +1,6 @@
 const proxyUtils = require('./proxyUtils.js')
 const proxy = require('express-http-proxy')
 const bodyParser = require('body-parser')
-const permissionsHelper = require('./../helpers/permissionsHelper.js')
 const envHelper = require('./../helpers/environmentVariablesHelper.js')
 const contentProxyUrl = envHelper.CONTENT_PROXY_URL
 const learnerServiceBaseUrl = envHelper.LEARNER_URL
@@ -18,7 +17,7 @@ module.exports = function (app) {
   }
   app.use('/plugins/v1/search', proxy(contentServiceBaseUrl, {
     preserveHostHdr: true,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentServiceBaseUrl),
     proxyReqPathResolver: function (req) {
       var originalUrl = req.originalUrl
       originalUrl = originalUrl.replace('/', '')
@@ -28,36 +27,36 @@ module.exports = function (app) {
 
   app.use('/content-plugins/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
 
   app.use('/plugins/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
 
   app.use('/assets/public/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
 
   app.use('/content/preview/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
 
   // Log telemetry for action api's
   app.all('/action/*', telemetryHelper.generateTelemetryForProxy)
 
-  app.use('/action/content/v3/unlisted/publish/:contentId', permissionsHelper.checkPermission(),
+  app.use('/action/content/v3/unlisted/publish/:contentId',
     bodyParser.json(), proxy(contentProxyUrl, {
       preserveHostHdr: true,
       limit: reqDataLimitOfContentUpload,
-      proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+      proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
       proxyReqPathResolver: proxyReqPathResolverMethod,
       proxyReqBodyDecorator: function (bodyContent, srcReq) {
         if (bodyContent && bodyContent.request && bodyContent.request.content) {
@@ -68,7 +67,7 @@ module.exports = function (app) {
     }))
 
   app.use('/action/data/v1/page/assemble', proxy(learnerServiceBaseUrl, {
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(learnerServiceBaseUrl),
     proxyReqPathResolver: function (req) {
       var originalUrl = req.originalUrl
       originalUrl = originalUrl.replace('/action/', '')
@@ -78,7 +77,7 @@ module.exports = function (app) {
 
 
   app.use('/action/data/v1/form/read', proxy(contentServiceBaseUrl, {
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentServiceBaseUrl),
     proxyReqPathResolver: function (req) {
       var originalUrl = req.originalUrl
       originalUrl = originalUrl.replace('/action/', '')
@@ -108,7 +107,7 @@ module.exports = function (app) {
   }))
   app.use('/action/textbook/v1/toc/*', addCorsHeaders,
   proxy(learnerURL, {
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(learnerURL),
     proxyReqPathResolver: (req) => {
       var originalUrl = req.originalUrl
       originalUrl = originalUrl.replace('/action/textbook/v1/', 'textbook/v1/')
@@ -119,10 +118,9 @@ module.exports = function (app) {
   app.post('/action/user/v1/search',
     addCorsHeaders,
     proxyUtils.verifyToken(),
-    permissionsHelper.checkPermission(),
     proxy(learnerURL, {
       limit: reqDataLimitOfContentUpload,
-      proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+      proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(learnerURL),
       proxyReqPathResolver: function (req) {
         let originalUrl = req.originalUrl.replace('/action/', '')
         return require('url').parse(learnerURL + originalUrl).path
@@ -130,10 +128,10 @@ module.exports = function (app) {
       userResDecorator: userResDecorator
   }))
 
-  app.use('/action/*', permissionsHelper.checkPermission(), proxy(contentProxyUrl, {
+  app.use('/action/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
     limit: reqDataLimitOfContentUpload,
-    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
+    proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(contentProxyUrl),
     proxyReqPathResolver: proxyReqPathResolverMethod,
     userResDecorator: userResDecorator
   }))

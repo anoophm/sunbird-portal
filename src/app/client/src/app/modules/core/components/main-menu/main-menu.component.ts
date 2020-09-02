@@ -1,8 +1,9 @@
-import { ConfigService, ResourceService, IUserData, IUserProfile } from '@sunbird/shared';
-import { Component, OnInit } from '@angular/core';
+import { EXPLORE_GROUPS, MY_GROUPS } from '../../../public/module/group/components/routerLinks';
+import { ConfigService, ResourceService, IUserData, IUserProfile, LayoutService } from '@sunbird/shared';
+import { Component, OnInit, Input } from '@angular/core';
 import { UserService, PermissionService, ProgramsService } from '../../services';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { IInteractEventObject, IInteractEventEdata } from '@sunbird/telemetry';
+import {IInteractEventObject, IInteractEventEdata, TelemetryService} from '@sunbird/telemetry';
 import { CacheService } from 'ng2-cache-service';
 import { first, filter, tap } from 'rxjs/operators';
 import * as _ from 'lodash-es';
@@ -46,6 +47,9 @@ export class MainMenuComponent implements OnInit {
    * reference of Router.
    */
   private router: Router;
+
+  @Input()
+  public layoutConfiguration: any;
   homeMenuIntractEdata: IInteractEventEdata;
   learnMenuIntractEdata: IInteractEventEdata;
   libraryMenuIntractEdata: IInteractEventEdata;
@@ -55,6 +59,7 @@ export class MainMenuComponent implements OnInit {
   workspaceMenuIntractEdata: IInteractEventEdata;
   helpMenuIntractEdata: IInteractEventEdata;
   contributeMenuEdata: IInteractEventEdata;
+  groupsMenuIntractEdata: IInteractEventEdata;
   helpLinkVisibility: string;
   /**
    * shows/hides contribute tab
@@ -62,18 +67,37 @@ export class MainMenuComponent implements OnInit {
 
   signInIntractEdata: IInteractEventEdata;
   showContributeTab: boolean;
+  hrefPath = '/resources';
+  routerLinks = {explore: `/${EXPLORE_GROUPS}`, groups: `/${MY_GROUPS}`};
   /*
   * constructor
   */
   constructor(resourceService: ResourceService, userService: UserService, router: Router, public activatedRoute: ActivatedRoute,
     permissionService: PermissionService, config: ConfigService, private cacheService: CacheService,
-    private programsService: ProgramsService) {
+    private programsService: ProgramsService, public layoutService: LayoutService, public telemetryService: TelemetryService) {
     this.resourceService = resourceService;
     this.userService = userService;
     this.permissionService = permissionService;
     this.router = router;
     this.config = config;
     this.workSpaceRole = this.config.rolesConfig.headerDropdownRoles.workSpaceRole;
+    this.updateHrefPath(this.router.url);
+    router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.updateHrefPath(event.url);
+    });
+  }
+  updateHrefPath(url) {
+      if (url.indexOf('explore-course') >= 0) {
+        this.hrefPath = url.replace('explore-course', 'learn');
+      } else if (url.indexOf('explore') >= 0) {
+        this.hrefPath = url.replace('explore', 'resources');
+      } else if (url.indexOf('play') >= 0) {
+        this.hrefPath = '/resources' + url;
+      } else {
+        this.hrefPath = '/resources';
+      }
   }
   ngOnInit() {
     try {
@@ -126,6 +150,11 @@ export class MainMenuComponent implements OnInit {
       type: 'click',
       pageid: 'learn'
     };
+    this.groupsMenuIntractEdata = {
+      id: 'groups-tab',
+      type: 'click',
+      pageid: _.get(this.activatedRoute, 'snapshot.data.telemetry.pageid') || 'groups'
+    };
     this.workspaceMenuIntractEdata = {
       id: 'workspace-menu-button',
       type: 'click',
@@ -173,6 +202,34 @@ export class MainMenuComponent implements OnInit {
   }
 
   getFeatureId(featureId, taskId) {
-    return [{ id: featureId, type: 'Feature' }, { id: taskId, type: 'Task' }];
+    return [{id: featureId, type: 'Feature'}, {id: taskId, type: 'Task'}];
+  }
+
+  navigateToGroups() {
+    return !this.userService.loggedIn ? EXPLORE_GROUPS : MY_GROUPS ;
+  }
+  isLayoutAvailable() {
+    return this.layoutService.isLayoutAvailable(this.layoutConfiguration);
+  }
+
+  switchLayout() {
+    this.layoutService.initiateSwitchLayout();
+    this.generateInteractTelemetry();
+  }
+
+  generateInteractTelemetry() {
+    const interactData = {
+      context: {
+        env: _.get(this.activatedRoute, 'snapshot.data.telemetry.env') || 'main-header',
+        cdata: []
+      },
+      edata: {
+        id: 'switch-theme',
+        type: 'click',
+        pageid: this.router.url,
+        subtype: this.layoutConfiguration ? 'joy' : 'classic'
+      }
+    };
+    this.telemetryService.interact(interactData);
   }
 }

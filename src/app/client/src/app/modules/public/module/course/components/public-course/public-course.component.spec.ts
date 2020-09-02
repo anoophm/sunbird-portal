@@ -13,7 +13,7 @@ import { Response } from './public-course.component.spec.data';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TelemetryModule } from '@sunbird/telemetry';
 import { CacheService } from 'ng2-cache-service';
-
+import { configureTestSuite } from '@sunbird/test-util';
 
 describe('PublicCourseComponent', () => {
   let component: PublicCourseComponent;
@@ -23,6 +23,8 @@ describe('PublicCourseComponent', () => {
   let sendOrgDetails = true;
   let sendPageApi = true;
   let sendFormApi = true;
+  let sendMenuConfig = true;
+  let activatedRouteStub;
   class RouterStub {
     navigate = jasmine.createSpy('navigate');
     url = jasmine.createSpy('url');
@@ -46,6 +48,7 @@ describe('PublicCourseComponent', () => {
     };
     public changeQueryParams(queryParams) { this.queryParamsMock.next(queryParams); }
   }
+  configureTestSuite();
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [SharedModule.forRoot(), CoreModule, HttpClientTestingModule, SuiModule, TelemetryModule.forRoot()],
@@ -65,9 +68,16 @@ describe('PublicCourseComponent', () => {
     pageApiService = TestBed.get(PageApiService);
     orgDetailsService = TestBed.get(OrgDetailsService);
     cacheService = TestBed.get(CacheService);
+    activatedRouteStub = TestBed.get(ActivatedRoute);
     sendOrgDetails = true;
     sendPageApi = true;
     sendFormApi = true;
+    sendMenuConfig = true;
+    activatedRouteStub.snapshot.queryParams = {};
+    const responseToForm = [
+      { 'index': 0, 'contentType': 'course', 'title': 'ACTIVITY_COURSE_TITLE', 'desc': 'ACTIVITY_COURSE_DESC', 'activityType': 'Content', 'isEnabled': true, 'filters': { 'contentType': ['course'] } },
+      { 'index': 1, 'contentType': 'textbook', 'title': 'ACTIVITY_TEXTBOOK_TITLE', 'desc': 'ACTIVITY_TEXTBOOK_DESC', 'activityType': 'Content', 'isEnabled': false, 'filters': { 'contentType': ['TextBook'] } }
+    ];
     spyOn(orgDetailsService, 'getOrgDetails').and.callFake((options) => {
       if (sendOrgDetails) {
         return of({hashTagId: '123'});
@@ -83,8 +93,10 @@ describe('PublicCourseComponent', () => {
     spyOn(formService, 'getFormConfig').and.callFake((options) => {
       if (sendFormApi) {
         return of([{framework: 'TPD'}]);
+      } else {
+        return of(responseToForm);
       }
-      return throwError({});
+      //return throwError({});
     });
     spyOn(cacheService, 'get').and.callFake((options) => {
       return undefined;
@@ -155,4 +167,76 @@ describe('PublicCourseComponent', () => {
     component.ngOnDestroy();
     expect(component.unsubscribe$.complete).toHaveBeenCalled();
   });
+  it('should redo layout on render', () => {
+    component.layoutConfiguration = {};
+    component.ngOnInit();
+    component.redoLayout();
+    component.layoutConfiguration = null;
+    component.ngOnInit();
+    component.redoLayout();
+  });
+  it('should getFormData', () => {
+    sendFormApi = false;
+    component.ngOnInit();
+    formService = TestBed.get(FormService);
+    component['getFormData']();
+  });
+  it('should getFormData', () => {
+    activatedRouteStub.snapshot.queryParams.selectedTab = 'course';
+    fixture.detectChanges();
+    sendFormApi = false;
+    component.ngOnInit();
+    formService = TestBed.get(FormService);
+    component['getFormData']();
+  });
+
+  it('should redirect to viewall page with queryparams', () => {
+    const router = TestBed.get(Router);
+    const searchQuery = '{"request":{"query":"","filters":{"status":"1"},"limit":10,"sort_by":{"createdDate":"desc"}}}';
+    spyOn(component, 'viewAll').and.callThrough();
+    spyOn(cacheService, 'set').and.stub();
+    router.url = '/explore-course?selectedTab=course';
+    component.viewAll({searchQuery: searchQuery, name: 'Featured-courses'});
+    expect(router.navigate).toHaveBeenCalledWith(['/explore-course/view-all/Featured-courses', 1],
+    {queryParams: { 'status': '1', 'defaultSortBy': '{"createdDate":"desc"}', 'exists': undefined }});
+    expect(cacheService.set).toHaveBeenCalled();
+  });
+
+  it('should call play content method', () => {
+    const publicPlayerService = TestBed.get(PublicPlayerService);
+    spyOn(publicPlayerService, 'playExploreCourse').and.callThrough();
+    const event = {
+      data: {
+        metaData: {
+          identifier: 'do_21307528604532736012398'
+        }
+      }
+    };
+    component.playContent(event);
+    expect(publicPlayerService.playExploreCourse).toHaveBeenCalled();
+  });
+
+  it('should generate visit telemetry impression event', () => {
+    const event = {
+      data: {
+        metaData: {
+          identifier: 'do_21307528604532736012398',
+          contentType: 'Course'
+        },
+        section: 'Featured courses'
+      }
+    };
+    component.prepareVisits(event);
+    expect(component.telemetryImpression).toBeDefined();
+  });
+
+
+  it('should add audience type in fetch page data request body', () => {
+    spyOn(localStorage, 'getItem').and.returnValue('teacher');
+    component.queryParams = {sort_by: 'name', sortType: 'desc'};
+    component['fetchPageData']();
+    const option = { source: 'web', name: 'Course', organisationId: '*', filters: { sort_by: 'name', sortType: 'desc', audience: [ 'instructor' ] }, fields: [ 'name', 'appIcon', 'medium', 'subject', 'resourceType', 'contentType', 'organisation', 'topic', 'mimeType' ], params: { orgdetails: 'orgName,email' } };
+    expect(pageApiService.getPageData).toHaveBeenCalledWith(option);
+  });
+
 });

@@ -3,27 +3,27 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { TelemetryService, ITelemetryContext } from '@sunbird/telemetry';
 import {
   UtilService, ResourceService, ToasterService, IUserData, IUserProfile,
-  NavigationHelperService, ConfigService, BrowserCacheTtlService
+  NavigationHelperService, ConfigService, BrowserCacheTtlService, LayoutService
 } from '@sunbird/shared';
-import { Component, HostListener, OnInit, ViewChild, Inject, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild, Inject, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import {
   UserService, PermissionService, CoursesService, TenantService, OrgDetailsService, DeviceRegisterService,
   SessionExpiryInterceptor, FormService, ProgramsService
 } from '@sunbird/core';
 import * as _ from 'lodash-es';
 import { ProfileService } from '@sunbird/profile';
-import { Observable, of, throwError, combineLatest, BehaviorSubject, forkJoin } from 'rxjs';
+import {Observable, of, throwError, combineLatest, BehaviorSubject, forkJoin, zip, Subject} from 'rxjs';
 import { first, filter, mergeMap, tap, map, skipWhile, startWith, takeUntil } from 'rxjs/operators';
 import { CacheService } from 'ng2-cache-service';
 import { DOCUMENT } from '@angular/platform-browser';
-import { ShepherdService } from 'angular-shepherd';
-
+import { image } from '../assets/images/tara-bot-icon';
 /**
  * main app component
  */
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
+  styles: ['.header-block { display: none;}']
 })
 export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('frameWorkPopUp') frameWorkPopUp;
@@ -53,7 +53,7 @@ export class AppComponent implements OnInit, OnDestroy {
    * 1. org hashtag for Anonymous user
    * 2. user profile rootOrg hashtag for logged in
    */
-  private channel: string;
+  public channel: string;
   private _routeData$ = new BehaviorSubject(undefined);
   public readonly routeData$ = this._routeData$.asObservable()
     .pipe(skipWhile(data => data === undefined || data === null));
@@ -69,7 +69,6 @@ export class AppComponent implements OnInit, OnDestroy {
   sessionExpired = false;
   instance: string;
   resourceDataSubscription: any;
-  shepherdData: Array<any>;
   private fingerprintInfo: any;
   hideHeaderNFooter = true;
   queryParams: any;
@@ -84,6 +83,20 @@ export class AppComponent implements OnInit, OnDestroy {
   showUserVerificationPopup = false;
   feedCategory = 'OrgMigrationAction';
   labels: {};
+  showUserTypePopup = false;
+  deviceId: string;
+  public botObject: any = {};
+  isBotEnabled = (<HTMLInputElement>document.getElementById('isBotConfigured'))
+  ? (<HTMLInputElement>document.getElementById('isBotConfigured')).value : 'false';
+  botServiceURL = (<HTMLInputElement>document.getElementById('botServiceURL'))
+  ? (<HTMLInputElement>document.getElementById('botServiceURL')).value : '';
+  baseUrl = (<HTMLInputElement>document.getElementById('offlineDesktopAppDownloadUrl'))
+  ? (<HTMLInputElement>document.getElementById('offlineDesktopAppDownloadUrl')).value : '';
+  layoutConfiguration;
+  title =  _.get(this.resourceService, 'frmelmnts.btn.botTitle') ? _.get(this.resourceService, 'frmelmnts.btn.botTitle') : 'Ask Tara';
+  showJoyThemePopUp = false;
+  public unsubscribe$ = new Subject<void>();
+
   constructor(private cacheService: CacheService, private browserCacheTtlService: BrowserCacheTtlService,
     public userService: UserService, private navigationHelperService: NavigationHelperService,
     private permissionService: PermissionService, public resourceService: ResourceService,
@@ -93,9 +106,16 @@ export class AppComponent implements OnInit, OnDestroy {
     private profileService: ProfileService, private toasterService: ToasterService, public utilService: UtilService,
     public formService: FormService, private programsService: ProgramsService,
     @Inject(DOCUMENT) private _document: any, public sessionExpiryInterceptor: SessionExpiryInterceptor,
-    private shepherdService: ShepherdService) {
+    public changeDetectorRef: ChangeDetectorRef, public layoutService: LayoutService) {
     this.instance = (<HTMLInputElement>document.getElementById('instance'))
       ? (<HTMLInputElement>document.getElementById('instance')).value : 'sunbird';
+    const layoutType = localStorage.getItem('layoutType') || '';
+    if (layoutType === 'joy') {
+      this.layoutConfiguration = this.configService.appConfig.layoutConfiguration;
+      document.documentElement.setAttribute('layout', 'joy');
+    } else {
+      document.documentElement.setAttribute('layout', '');
+    }
   }
   /**
    * dispatch telemetry window unload event before browser closes
@@ -109,6 +129,7 @@ export class AppComponent implements OnInit, OnDestroy {
     window.location.replace('/sessionExpired');
     this.cacheService.removeAll();
   }
+
   handleHeaderNFooter() {
     this.router.events
       .pipe(
@@ -119,7 +140,46 @@ export class AppComponent implements OnInit, OnDestroy {
           _.get(this.activatedRoute, 'snapshot.firstChild.firstChild.firstChild.data.hideHeaderNFooter');
       });
   }
+  ngAfterViewInit() {
+    // themeing code
+    const trans = () => {
+      document.documentElement.classList.add('transition');
+      window.setTimeout(() => {
+          document.documentElement.classList.remove('transition');
+      }, 1000);
+  };
+    const selector = document.querySelectorAll('input[name=selector]');
+    for (let i = 0; i < selector.length; i++) {
+      selector[i].addEventListener('change', function() {
+        if (this.checked) {
+           trans();
+           document.documentElement.setAttribute('data-theme', this.value);
+        }
+    });
+    }
+    this.setTheme();
+    // themeing code
+  }
+
+  setTheme() {
+    const themeColour = localStorage.getItem('layoutColour') || 'Default';
+    this.setSelectedThemeColour(themeColour);
+    document.documentElement.setAttribute('data-theme', themeColour);
+    this.layoutService.setLayoutConfig(this.layoutConfiguration);
+  }
+
   ngOnInit() {
+    this.layoutService.switchableLayout().pipe(takeUntil(this.unsubscribe$)).subscribe(layoutConfig => {
+      if (layoutConfig != null) {
+        this.layoutConfiguration = layoutConfig.layout;
+      }
+    });
+    this.activatedRoute.queryParams.pipe(filter(param => !_.isEmpty(param))).subscribe(params => {
+      const utmParams = ['utm_campaign', 'utm_medium', 'utm_source', 'utm_term', 'utm_content', 'channel'];
+      if (_.some(_.intersection(utmParams, _.keys(params)))) {
+        this.telemetryService.makeUTMSession(params);
+      }
+    });
     this.didV2 = (localStorage && localStorage.getItem('fpDetails_v2')) ? true : false;
     const queryParams$ = this.activatedRoute.queryParams.pipe(
       filter(queryParams => queryParams && queryParams.clientId === 'android' && queryParams.context),
@@ -135,11 +195,13 @@ export class AppComponent implements OnInit, OnDestroy {
         mergeMap(data => {
           this.navigationHelperService.initialize();
           this.userService.initialize(this.userService.loggedIn);
+          this.getOrgDetails();
           if (this.userService.loggedIn) {
             this.permissionService.initialize();
             this.courseService.initialize();
             this.programsService.initialize();
             this.userService.startSession();
+            this.checkForCustodianUser();
             return this.setUserDetails();
           } else {
             return this.setOrgDetails();
@@ -147,22 +209,66 @@ export class AppComponent implements OnInit, OnDestroy {
         }))
       .subscribe(data => {
         this.tenantService.getTenantInfo(this.userService.slug);
+        this.tenantService.initialize();
         this.setPortalTitleLogo();
         this.telemetryService.initialize(this.getTelemetryContext());
         this.logCdnStatus();
         this.setFingerPrintTelemetry();
-        this.checkTncAndFrameWorkSelected();
         this.initApp = true;
+        this.joyThemePopup();
+        this.changeDetectorRef.detectChanges();
       }, error => {
         this.initApp = true;
+        this.changeDetectorRef.detectChanges();
       });
 
     this.changeLanguageAttribute();
+    if (this.userService.loggedIn) {
+      this.botObject['userId'] = this.userService.userid;
+    } else {
+      this.botObject['userId'] = this.deviceId;
+    }
+    this.botObject['appId'] = this.userService.appId;
+    this.botObject['chatbotUrl'] =  this.baseUrl + this.botServiceURL;
+
+    this.botObject['imageUrl'] = image.imageUrl;
+    this.botObject['title'] = this.botObject['header'] = this.title;
+  }
+
+  
+  onCloseJoyThemePopup() {
+    this.showJoyThemePopUp = false;
+    this.checkTncAndFrameWorkSelected();
+  }
+
+  isBotdisplayforRoute () {
+    const url = this.router.url;
+    return !!(_.includes(url, 'signup') || _.includes(url, 'recover') || _.includes(url, 'sign-in'));
+  }
+
+  storeThemeColour(value) {
+    localStorage.setItem('layoutColour', value);
+  }
+
+  setSelectedThemeColour(value) {
+    const element = (<HTMLInputElement>document.getElementById(value));
+    if (element) {
+      element.checked = true;
+    }
   }
 
   isLocationStatusRequired() {
-    const url = this.router.url;
+    const url = location.href;
     return !!(_.includes(url, 'signup') || _.includes(url, 'recover') || _.includes(url, 'sign-in'));
+  }
+
+  joyThemePopup() {
+    const joyThemePopup = localStorage.getItem('joyThemePopup');
+    if (joyThemePopup === 'true') {
+      this.checkTncAndFrameWorkSelected();
+    } else {
+      this.showJoyThemePopUp = true;
+    }
   }
 
   checkLocationStatus() {
@@ -203,8 +309,18 @@ export class AppComponent implements OnInit, OnDestroy {
           }
         }
       }
+      // TODO: code can be removed in 3.1 release from user-onboarding component as it is handled here.
+      zip(this.tenantService.tenantData$, this.orgDetailsService.orgDetails$).subscribe((res) => {
+        if (_.get(res[0], 'tenantData')) {
+          const orgDetailsFromSlug = this.cacheService.get('orgDetailsFromSlug');
+          if (_.get(orgDetailsFromSlug, 'slug') !== this.tenantService.slugForIgot) {
+            this.showUserTypePopup = !localStorage.getItem('userType');
+          }
+        }
+      });
     }, (err) => {
       this.isLocationConfirmed = true;
+      this.showUserTypePopup = false;
     });
     this.getUserFeedData();
   }
@@ -270,14 +386,34 @@ export class AppComponent implements OnInit, OnDestroy {
    * checks if user has accepted the tnc and show tnc popup.
    */
   public checkTncAndFrameWorkSelected() {
-    if (_.has(this.userProfile, 'promptTnC') && _.has(this.userProfile, 'tncLatestVersion') &&
-      _.has(this.userProfile, 'tncLatestVersion') && this.userProfile.promptTnC === true) {
-      this.showTermsAndCondPopUp = true;
-    } else {
-      this.checkFrameworkSelected();
-    }
+      if (_.has(this.userService.userProfile, 'promptTnC') && _.has(this.userService.userProfile, 'tncLatestVersion') &&
+        _.has(this.userService.userProfile, 'tncLatestVersion') && this.userService.userProfile.promptTnC === true) {
+        this.showTermsAndCondPopUp = true;
+      } else {
+        this.checkFrameworkSelected();
+      }
   }
-
+  public getOrgDetails() {
+    const slug = this.userService.slug;
+    return this.orgDetailsService.getOrgDetails(slug).pipe(
+      tap(data => {
+        if (slug !== '') {
+          this.cacheService.set('orgDetailsFromSlug', data, {
+            maxAge: 86400
+          });
+        }
+      })
+    );
+  }
+  public checkForCustodianUser() {
+    this.orgDetailsService.getCustodianOrgDetails().subscribe((custodianOrg) => {
+      if (_.get(this.userService, 'userProfile.rootOrg.rootOrgId') === _.get(custodianOrg, 'result.response.value')) {
+        this.userService.setIsCustodianUser(true);
+      } else {
+        this.userService.setIsCustodianUser(false);
+      }
+    });
+  }
   /**
    * checks if user has selected the framework and shows popup if not selected.
    */
@@ -310,6 +446,8 @@ export class AppComponent implements OnInit, OnDestroy {
       return new Observable(observer => this.telemetryService.getDeviceId((deviceId, components, version) => {
           this.fingerprintInfo = {deviceId, components, version};
           (<HTMLInputElement>document.getElementById('deviceId')).value = deviceId;
+          this.deviceId = deviceId;
+          this.botObject['did'] = deviceId;
         this.deviceRegisterService.setDeviceId();
           observer.next(deviceId);
           observer.complete();
@@ -326,6 +464,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
         this.userProfile = user.userProfile;
         this.channel = this.userService.hashTagId;
+        this.botObject['channel'] = this.channel;
         return of(user.userProfile);
       }));
   }
@@ -337,6 +476,12 @@ export class AppComponent implements OnInit, OnDestroy {
       tap(data => {
         this.orgDetails = data;
         this.channel = this.orgDetails.hashTagId;
+        this.botObject['channel'] = this.channel;
+        if (this.userService.slug !== '') {
+          this.cacheService.set('orgDetailsFromSlug', data, {
+            maxAge: 86400
+          });
+        }
       })
     );
   }
@@ -433,7 +578,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.toasterService.warning(this.resourceService.messages.emsg.m0012);
       this.frameWorkPopUp.modal.deny();
       this.checkLocationStatus();
-      this.cacheService.set('showFrameWorkPopUp', 'installApp');
+      this.showFrameWorkPopUp = false;
     });
   }
   viewInBrowser() {
@@ -459,6 +604,8 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.resourceDataSubscription) {
       this.resourceDataSubscription.unsubscribe();
     }
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
   interpolateInstance(message) {
     return message.replace('{instance}', _.upperCase(this.instance));
@@ -472,8 +619,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /** It will fetch user feed data if user is custodian as well as logged in. */
   getUserFeedData() {
-    this.orgDetailsService.getCustodianOrg().subscribe(custodianOrg => {
-      if (this.userService.loggedIn &&
+    this.orgDetailsService.getCustodianOrgDetails().subscribe(custodianOrg => {
+      if (this.userService.loggedIn && !this.userService.userProfile.managedBy &&
         (_.get(this.userService, 'userProfile.rootOrg.rootOrgId') === _.get(custodianOrg, 'result.response.value'))) {
           this.userService.getFeedData().subscribe(
             (data) => {
@@ -484,7 +631,11 @@ export class AppComponent implements OnInit, OnDestroy {
                   formAction: 'onboarding',
                   contentType: 'externalIdVerification'
                 };
-                this.formService.getFormConfig(formReadInputParams).subscribe(
+                let orgId;
+                if ((_.get(this.userFeed, 'data.prospectChannelsIds')) && (_.get(this.userFeed, 'data.prospectChannelsIds').length) === 1) {
+                  orgId = _.get(this.userFeed, 'data.prospectChannelsIds[0].id');
+                }
+                this.formService.getFormConfig(formReadInputParams, orgId).subscribe(
                   (formResponsedata) => {
                     this.labels = _.get(formResponsedata[0], ('range[0]'));
                   }
@@ -500,4 +651,5 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 }

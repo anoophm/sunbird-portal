@@ -4,13 +4,15 @@
   bottom: 0px;
   padding: calculateRem(32px) calculateRem(12px) 0 calculateRem(12px);
   background: var(--gray-800);
-  box-shadow: 0 calculateRem(20px) calculateRem(20px) calculateRem(10px) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 calculateRem(20px) calculateRem(20px) calculateRem(10px) rgba(var(--rc-rgba-black), 0.2);
   max-width: calculateRem(250px);
   right: 0;
   left: 0;
   margin: 0 auto;
   z-index: 9;
-
+  @include respond-below(xs){
+    bottom: 222.516px;
+  }
   .download-mobile-app-logo {
     background: $white;
     color: $black;
@@ -18,6 +20,7 @@
     text-align: center;
     min-height: calculateRem(148px);
     overflow-y: auto;
+
     .playStore-img {
       width: calculateRem(120px);
     }
@@ -40,10 +43,6 @@
     }
   }
 
-  label {
-    font-weight: bold;
-  }
-
   .mobile-circles {
     position: absolute;
     top: calculateRem(10px);
@@ -51,9 +50,20 @@
     align-items: center;
     margin: 0 calculateRem(20px);
 
+    html[dir="rtl"] & {
+      flex-direction: row-reverse;
+    }
+
     .border-round {
       border: none;
       background: $gray-400;
+
+      &:nth-child(3) {
+        html[dir="rtl"] & {
+          margin-left: calculateRem(20px) !important;
+          margin-right: calculateRem(10px) !important;
+        }
+      }
     }
 
     .border-r50 {
@@ -69,6 +79,11 @@
       height: calculateRem(6px);
       width: calculateRem(76px);
       border-radius: calculateRem(3px);
+
+      html[dir="rtl"] & {
+        margin-right: 0px !important;
+        margin-left: calculateRem(20px) !important;
+      }
     }
 
     .small-box {
@@ -79,37 +94,17 @@
 
 }
 
-*[dir="rtl"] {
-
-  // .download-mobile-app-logo {
-  //   height: 148px;
-  // }
-
-  .mobile-circles {
-    flex-direction: row-reverse;
-
-    .oval-box {
-      margin-right: 0px !important;
-      margin-left: calculateRem(20px) !important;
-    }
-
-    .border-round:nth-child(3) {
-      margin-left: calculateRem(20px) !important;
-      margin-right: calculateRem(10px) !important;
-    }
-  }
-
-}
-
 .footer {
   background: $primary-color;
   color: $white-color !important;
   padding: calculateRem(34px) 0;
   font-size: calculateRem(14px);
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  position: relative;
   width: 100%;
+  &.player-fullscreen-footer{
+    display: none;
+  }
+
 
   a {
     color: $white-color !important;
@@ -130,44 +125,21 @@
   text-align: center;
 }
 
-@media screen and (min-width: 768px) {
-  *[dir="ltr"] {
-    .footerMenu {
-      text-align: left;
-    }
-
-    .contantDetails {
-      text-align: right;
-    }
-  }
-
-  *[dir="rtl"] {
-    .footerMenu {
-      text-align: right;
-    }
-
-    .contantDetails {
-      text-align: left;
-    }
-  }
-
-}
-@media screen and (max-width: 900px) {
-  .footer{
-    padding: 20px 0;
-  }
-}
-@media screen and (max-width: 767px) {
+@include respond-below(sm) {
 
   .download-mobile-app {
-    margin: 0 auto;
-    right: 0;
-    left: 0;
-    z-index: inherit;
-    box-shadow: 0 calculateRem(-5px) calculateRem(20px) calculateRem(5px) rgba(0, 0, 0, 0.2);
-    .app-download{
+    box-shadow: 0 calculateRem(-5px) calculateRem(20px) calculateRem(5px) rgba(var(--rc-rgba-black), 0.2);
+    height: auto;
+
+    .download-mobile-app-logo {
+      height: auto;
+      min-height: inherit;
+    }
+
+    .app-download {
       padding-top: calculateRem(12px);
     }
+
     a {
       padding-bottom: 0 !important;
     }
@@ -177,17 +149,9 @@
     }
   }
 
-    .download-mobile-app {
-      height: auto;
-
-      .download-mobile-app-logo {
-        height: auto;
-      }
-
-    }
-
   .footer {
     max-height: calculateRem(230px);
+
     .footerMenu {
       ul {
         margin-top: 0 !important;
@@ -204,5 +168,36 @@
     .ui.container>.ui.stackable.grid>.column {
       padding: 0 !important;
     }
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .footer {
+    padding: calculateRem(20px) 0;
+  }
+}
+
+::ng-deep {
+  @include respond-above(sm) {
+    *[dir="ltr"] {
+      .footerMenu {
+        text-align: left;
+      }
+
+      .contantDetails {
+        text-align: right;
+      }
+    }
+
+    *[dir="rtl"] {
+      .footerMenu {
+        text-align: right;
+      }
+
+      .contantDetails {
+        text-align: left;
+      }
+    }
+
   }
 }

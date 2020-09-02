@@ -8,13 +8,13 @@ import {
 import { SearchService, UserService, LearnerService, ContentService } from '@sunbird/core';
 import { OrgTypeService } from '@sunbird/org-management';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { IPagination } from '@sunbird/announcement';
 import * as _ from 'lodash-es';
 import { Observable, of as observableOf } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { UserFilterComponent } from './user-filter.component';
 import { UserSearchService } from './../../services';
 import { CoreModule } from '@sunbird/core';
+import { configureTestSuite } from '@sunbird/test-util';
 
 describe('UserFilterComponent', () => {
   let component: UserFilterComponent;
@@ -26,7 +26,7 @@ describe('UserFilterComponent', () => {
  class RouterStub {
    navigate = jasmine.createSpy('navigate');
  }
-
+  configureTestSuite();
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, SharedModule.forRoot(), CoreModule],

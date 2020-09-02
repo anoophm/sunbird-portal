@@ -1,6 +1,6 @@
-import { servicemockRes, contentList, contentListWithHoverData } from './util.service.spec.data';
+import { servicemockRes, contentList, contentListWithHoverData, contentHierarchyDateSet1 } from './util.service.spec.data';
 import { TestBed, inject } from '@angular/core/testing';
-
+import { configureTestSuite } from '@sunbird/test-util';
 import { UtilService } from './util.service';
 import { ResourceService } from '../resource/resource.service';
 
@@ -26,6 +26,7 @@ const resourceBundle = {
 };
 
 describe('UtilService', () => {
+  configureTestSuite();
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [UtilService, { provide: ResourceService, useValue: resourceBundle }]
@@ -255,4 +256,8 @@ describe('UtilService', () => {
       expect(data).toBeFalsy();
   }));
 
+  it('should return  sorted tree', inject([UtilService], (service: UtilService) => {
+      const data = service.sortChildrenWithIndex(contentHierarchyDateSet1.before);
+      expect(data).toEqual(contentHierarchyDateSet1.after);
+  }));
 });

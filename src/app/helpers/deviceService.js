@@ -2,11 +2,10 @@ const envHelper = require('./environmentVariablesHelper.js');
 const CONSTANTS = require('./constants');
 const _ = require('lodash');
 const httpSatusCode = require('http-status-codes');
-const logger = require('sb_logger_util_v2');
+const { logger } = require('@project-sunbird/logger');
 const {sendRequest} = require('./httpRequestHandler');
 const {parseJson} = require('./utilityService');
 const uuidv1 = require('uuid/v1');
-
 
 const getDeviceProfile = async (req, res) => {
   const options = {
@@ -17,6 +16,8 @@ const getDeviceProfile = async (req, res) => {
       'Cache-Control': 'no-cache',
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + envHelper.PORTAL_API_AUTH_TOKEN,
+      'X-REAL-IP': req.headers['x-real-ip'],
+      'X-FORWARDED-FOR': req.headers['x-real-ip']
     }
   };
   try {

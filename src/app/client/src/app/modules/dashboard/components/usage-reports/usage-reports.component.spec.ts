@@ -2,7 +2,7 @@ import { mockChartData } from './usage-reports.spec.data';
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, of as observableOf } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { UsageService } from './../../services';
+import { UsageService, CourseProgressService } from './../../services';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ToasterService, ResourceService } from '@sunbird/shared';
 import { UserService } from '@sunbird/core';
@@ -13,6 +13,7 @@ import { UsageReportsComponent } from './usage-reports.component';
 import { TelemetryModule } from '@sunbird/telemetry';
 import { DataChartComponent } from '../data-chart/data-chart.component';
 import { CoreModule } from '@sunbird/core';
+import { configureTestSuite } from '@sunbird/test-util';
 
 describe('UsageReportsComponent', () => {
   let component: UsageReportsComponent;
@@ -21,12 +22,13 @@ describe('UsageReportsComponent', () => {
     snapshot: { data: { telemetry: { pageid: 'org-admin-dashboard', env: 'dashboard', type: 'view' } } }
   };
   const routerStub = { url: '/dashBoard/organization' };
+  configureTestSuite();
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, SharedModule.forRoot(), CoreModule, TelemetryModule.forRoot()],
       schemas: [NO_ERRORS_SCHEMA],
       declarations: [UsageReportsComponent, DataChartComponent],
-      providers: [ ToasterService, UserService, NavigationHelperService,
+      providers: [ ToasterService, UserService, NavigationHelperService, CourseProgressService,
         { provide: ActivatedRoute, useValue: fakeActivatedRoute },
         { provide: Router, useValue: routerStub }
       ]

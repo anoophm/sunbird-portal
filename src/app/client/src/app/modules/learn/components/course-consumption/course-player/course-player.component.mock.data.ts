@@ -3880,3 +3880,43 @@ export const CourseHierarchyGetMockResponseFlagged = {
         }
     }
   };
+export const telemetryInteractMockData = {
+    'context': {
+        'env': 'course',
+        'cdata': []
+    },
+    'edata': {
+        'id': 'join-training-popup-close',
+        'type': 'click',
+        'pageid': 'course-read'
+    },
+    'object': {
+        'id': 'do_212347136096788480178',
+        'type': 'Course',
+        'ver': '1.0',
+        'rollup': {
+            'l1': 'do_212347136096788480178'
+        }
+    }
+};
+export const enrolledCourseMockData = {
+    'id': 'api.user.courses.list',
+    'ver': 'v1',
+    'ts': '2020-07-24 10:20:22:745+0000',
+    'params': {
+      'resmsgid': null,
+      'msgid': 'd44c7e82-f280-2d03-901f-023fd2602f9a',
+      'err': null,
+      'status': 'success',
+      'errmsg': null
+    },
+    'responseCode': 'OK',
+    'result': {
+      'courses': [
+        {
+          'enrolledDate': '2020-05-04 09:57:34:907+0000',
+          'courseId': 'do_212347136096788480178'
+        }
+      ]
+    }
+  };
